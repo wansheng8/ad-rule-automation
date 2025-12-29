@@ -1,6 +1,6 @@
 ! Adblock规则
-! 最后更新: 2025-12-30 04:42:41
-! 规则总数: 67237
+! 最后更新: 2025-12-30 04:45:53
+! 规则总数: 67239
 ! 更新状态: updated
 ! 
 ! 由智能广告规则处理系统生成
@@ -29926,6 +29926,7 @@ zpaste.net##.uk-animation-shake
 ||foldingcutleryhelium.com^
 ||foldinsinuate.com^
 ||foldyahoolestorderly.com^
+||folioleformism.com^
 ||foliosenumbing.com^
 ||foliosstrafer.qpon^
 ||foliousmulled.world^
@@ -37876,6 +37877,7 @@ zpaste.net##.uk-animation-shake
 ||jypcqvpgewajj.site^
 ||jypiqwuslajzh.space^
 ||jypndtjmdqcnj.online^
+||jypwialucropf.site^
 ||jyqekzewvyjzj.top^
 ||jyqekzzlmreob.top^
 ||jyqekzzlmrlqy.top^
