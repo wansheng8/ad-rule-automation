@@ -1,9 +1,13 @@
 # Hosts规则
-# 最后更新: 2025-12-29 19:41:23
-# 域名总数: 86835
+# 最后更新: 2025-12-30 03:51:14
+# 域名总数: 86944
 # 
-! 由智能广告规则处理系统生成
-! GitHub: https://github.com/wansheng8/ad-rule-automation
+# 由智能广告规则处理系统生成
+# 时区: 上海 (UTC+8)
+# GitHub: https://github.com/wansheng8/ad-rule-automation
+# 
+# 使用方法: 复制到系统hosts文件
+# 格式: 0.0.0.0 example.com
 #
 
 0.0.0.0 0.0.0.0
@@ -504,6 +508,7 @@
 0.0.0.0 2000greetings.com
 0.0.0.0 2001positions.com
 0.0.0.0 2005-search.com
+0.0.0.0 2006mindfreaklike.blogspot.com
 0.0.0.0 200uu1.top
 0.0.0.0 200uu3.top
 0.0.0.0 200uu9.top
@@ -1722,6 +1727,19 @@
 0.0.0.0 9wj62t.lat
 0.0.0.0 9wje5g.lat
 0.0.0.0 9wuehh.sbs
+0.0.0.0 AUSpolice.com
+0.0.0.0 BRApolice.com
+0.0.0.0 COMpolice.com
+0.0.0.0 COMpolice.net
+0.0.0.0 CYPpolice.com
+0.0.0.0 EGYpolice.com
+0.0.0.0 ETHpolice.com
+0.0.0.0 GEOpolice.com
+0.0.0.0 INDpolice.com
+0.0.0.0 LUXpolice.com
+0.0.0.0 LUXpolice.net
+0.0.0.0 PAKpolice.com
+0.0.0.0 USApolice.com
 0.0.0.0 a-5.info
 0.0.0.0 a-ads.com
 0.0.0.0 a-blog.eu
@@ -4616,6 +4634,7 @@
 0.0.0.0 ads.morningstar.com
 0.0.0.0 ads.mouseplanet.com
 0.0.0.0 ads.movieweb.com
+0.0.0.0 ads.mozilla.org
 0.0.0.0 ads.mp.mydas.mobi
 0.0.0.0 ads.mp3searchy.com
 0.0.0.0 ads.mrgreen.com
@@ -7980,6 +7999,7 @@
 0.0.0.0 ap.adflex.vn
 0.0.0.0 ap.adups.com
 0.0.0.0 ap.lijit.com
+0.0.0.0 ap.oasfile.aftenposten.no
 0.0.0.0 ap.octopuspop.com
 0.0.0.0 ap.read.mediation.pns.ap.orangeads.fr
 0.0.0.0 ap.smardroid.com
@@ -11489,6 +11509,7 @@
 0.0.0.0 bizible.com
 0.0.0.0 bizimburgercarsi.com
 0.0.0.0 bizjournals.112.2o7.net
+0.0.0.0 bizlawpoint.com
 0.0.0.0 bizneed.com
 0.0.0.0 biznes-gov-pl.netlify.app
 0.0.0.0 biznesmonitor.com
@@ -11766,6 +11787,7 @@
 0.0.0.0 bnrs.ilm.ee
 0.0.0.0 bnserving.com
 0.0.0.0 bntbcstglobal.112.2o7.net
+0.0.0.0 bnvxcfhdgf.blogspot.com.es
 0.0.0.0 bo.goadservices.com
 0.0.0.0 bo53tanicfascmmes.info
 0.0.0.0 boa-0918-verify-login-2014.icrb.cl
@@ -12565,6 +12587,7 @@
 0.0.0.0 butytrendy.com
 0.0.0.0 buy-adipex.aca.ru
 0.0.0.0 buy-adipex.hut1.ru
+0.0.0.0 buy-cheap-phentermine.blogspot.com
 0.0.0.0 buy-cialis-online.iscool.nl
 0.0.0.0 buy-cialis.splinder.com
 0.0.0.0 buy-fioricet.hut1.ru
@@ -13232,6 +13255,7 @@
 0.0.0.0 capiloz.com
 0.0.0.0 capireqif.com
 0.0.0.0 capireva.com
+0.0.0.0 capital-invest-can.cropvita.sbs
 0.0.0.0 capitalaiapp.com
 0.0.0.0 capitalcitoyen.net
 0.0.0.0 capitalfinqix.com
@@ -14556,6 +14580,8 @@
 0.0.0.0 chch.fr
 0.0.0.0 chchoice.112.2o7.net
 0.0.0.0 cheap-adipex.hut1.ru
+0.0.0.0 cheap-web-hosting-here.blogspot.com
+0.0.0.0 cheap-xanax-here.blogspot.com
 0.0.0.0 cheapapartmentsaroundme.com
 0.0.0.0 cheapdentalimplant.net
 0.0.0.0 cheapxanax.hut1.ru
@@ -14825,6 +14851,7 @@
 0.0.0.0 cityads.telus.net
 0.0.0.0 cityadstrack.com
 0.0.0.0 citycarscolchester.com
+0.0.0.0 citycash2.blogspot.com
 0.0.0.0 citydevelopment.digital
 0.0.0.0 citydynamics.click
 0.0.0.0 citygateprojects.link
@@ -16722,6 +16749,7 @@
 0.0.0.0 craneturkey.com
 0.0.0.0 craniespen.site
 0.0.0.0 cranvasto.help
+0.0.0.0 crarefundsreview.com
 0.0.0.0 crash.163.com
 0.0.0.0 crashchance.com
 0.0.0.0 crasheye.cn
@@ -16813,6 +16841,7 @@
 0.0.0.0 credito-xyvar.net
 0.0.0.0 creditperformance.com.br
 0.0.0.0 creditron.org
+0.0.0.0 creditsoffer.blogspot.com
 0.0.0.0 credivosyncaiapp.net
 0.0.0.0 credline.click
 0.0.0.0 credlyft.top
@@ -18502,6 +18531,7 @@
 0.0.0.0 diff4.smartadserver.com
 0.0.0.0 diffrrispe.site
 0.0.0.0 diffufable.site
+0.0.0.0 dig
 0.0.0.0 dig8srs7dv7t5.cloudfront.net
 0.0.0.0 digammasmlli70lle.info
 0.0.0.0 digestiondrawer.com
@@ -22593,6 +22623,7 @@
 0.0.0.0 fiona.ai.net
 0.0.0.0 fioracocob.pro
 0.0.0.0 fiorescont.world
+0.0.0.0 fioricet-online.blogspot.com
 0.0.0.0 fioricet.1.p2l.info
 0.0.0.0 fioricet.3.p2l.info
 0.0.0.0 fioricet.4.p2l.info
@@ -23033,6 +23064,7 @@
 0.0.0.0 forex-signal.hut1.ru
 0.0.0.0 forex-trade.hut1.ru
 0.0.0.0 forex-trader-ai.com
+0.0.0.0 forex-trading-benefits.blogspot.com
 0.0.0.0 forexadv.eu
 0.0.0.0 forexandstocks.top
 0.0.0.0 forexmanagedfund.top
@@ -24117,6 +24149,7 @@
 0.0.0.0 gehetichat.icu
 0.0.0.0 geintenalf.com
 0.0.0.0 geizhals.oewabox.at
+0.0.0.0 gekowex.com
 0.0.0.0 gelalittle.com
 0.0.0.0 gelderanni.world
 0.0.0.0 geldrix-surge-app-ai.com
@@ -24343,6 +24376,9 @@
 0.0.0.0 getuwohish.live
 0.0.0.0 getvehiclesnext.cfd
 0.0.0.0 getxmlisi.com
+0.0.0.0 getyour5kcredits0.blogspot.com
+0.0.0.0 getyourgiftnow2.blogspot.com
+0.0.0.0 getyourgiftnow3.blogspot.com
 0.0.0.0 gexfum.cask-wander.ru
 0.0.0.0 geyserplat.msydrop.com
 0.0.0.0 gezegensanat.com
@@ -24468,6 +24504,7 @@
 0.0.0.0 girlgetupandlive.com
 0.0.0.0 girlisacademy.com
 0.0.0.0 girllyday.com
+0.0.0.0 girlownedbypolicelike.blogspot.com
 0.0.0.0 girlporn.ru
 0.0.0.0 girls-chat.tv
 0.0.0.0 girlsaskguys.us.intellitxt.com
@@ -24711,6 +24748,7 @@
 0.0.0.0 gm4good.online
 0.0.0.0 gma.alicdn.com
 0.0.0.0 gmads.net
+0.0.0.0 gmailapcq6.eblink5.com
 0.0.0.0 gmchevyapprentice.112.2o7.net
 0.0.0.0 gmdtrk.com
 0.0.0.0 gmerseason.com
@@ -25492,6 +25530,7 @@
 0.0.0.0 gsspcln.jp
 0.0.0.0 gssprt.jp
 0.0.0.0 gstr4w5.icu
+0.0.0.0 gstscra.com
 0.0.0.0 gstturkiye.com
 0.0.0.0 gtamoding.fr
 0.0.0.0 gtb19.acecounter.com
@@ -25608,6 +25647,7 @@
 0.0.0.0 gw.zedo.com
 0.0.0.0 gwallet.com
 0.0.0.0 gwapskipayment.icu
+0.0.0.0 gwene.com.slackware.alien.blog
 0.0.0.0 gwiq-v3.globalwebindex.net
 0.0.0.0 gwiqcdn.globalwebindex.net
 0.0.0.0 gwiza1988.hopto.org
@@ -26305,6 +26345,7 @@
 0.0.0.0 hippo.adultadworld.com
 0.0.0.0 hiq.fotolog.com
 0.0.0.0 hir-tv.com
+0.0.0.0 hir44.blogspot.com
 0.0.0.0 hirado.top
 0.0.0.0 hiragazza.com
 0.0.0.0 hiram.iad-03.braze.com
@@ -26318,6 +26359,7 @@
 0.0.0.0 hirorigo.net
 0.0.0.0 hirozon.info
 0.0.0.0 hirsch-ille.fr
+0.0.0.0 hirszabadsag.blogspot.com
 0.0.0.0 hirtop.in
 0.0.0.0 hirturi.blogspot.hu
 0.0.0.0 hirvilag.co
@@ -26933,6 +26975,7 @@
 0.0.0.0 hydraconcept.com
 0.0.0.0 hydrajacob.pro
 0.0.0.0 hydramedia.com
+0.0.0.0 hydrocodone-buy-online.blogspot.com
 0.0.0.0 hydrocodone.irondel.swisshost.by
 0.0.0.0 hydrocodone.shengen.ru
 0.0.0.0 hydrocodone.t-amo.net
@@ -28570,6 +28613,7 @@
 0.0.0.0 integration.richrelevance.com
 0.0.0.0 integrativehealingsb.com
 0.0.0.0 intela.com
+0.0.0.0 intelcom-on.progressionlive.com
 0.0.0.0 intelcomasfcmscta.com
 0.0.0.0 intelcorpchan.112.2o7.net
 0.0.0.0 intelcorpcim.112.2o7.net
@@ -32349,6 +32393,7 @@
 0.0.0.0 loungef2x.help
 0.0.0.0 loungef2x.lat
 0.0.0.0 loungef2x.lol
+0.0.0.0 love-quest.blog
 0.0.0.0 love.cityads.com
 0.0.0.0 loveaholics.com
 0.0.0.0 lovebrandz.com
@@ -33993,6 +34038,7 @@
 0.0.0.0 metrics.vividseats.com
 0.0.0.0 metrics.vodafone.co.uk
 0.0.0.0 metrics.vodafone.com.eg
+0.0.0.0 metrics.washingtonpost.com
 0.0.0.0 metrics.which.co.uk
 0.0.0.0 metrics.whitepages.com
 0.0.0.0 metrics.womansday.com
@@ -35746,6 +35792,7 @@
 0.0.0.0 nevaspremium.com
 0.0.0.0 neverslive-ai-solution.com
 0.0.0.0 nevicbarba.site
+0.0.0.0 new-vid-zone-1.blogspot.com.au
 0.0.0.0 new.915yzt.cn
 0.0.0.0 new.cetrk.com
 0.0.0.0 new.chokertraffic.com
@@ -36849,6 +36896,7 @@
 0.0.0.0 oascentral.lycos.com
 0.0.0.0 oascentral.mayoclinic.com
 0.0.0.0 oascentral.medbroadcast.com
+0.0.0.0 oascentral.minnpost.com
 0.0.0.0 oascentral.mochila.com
 0.0.0.0 oascentral.nerve.com
 0.0.0.0 oascentral.newsmax.com
@@ -37741,12 +37789,14 @@
 0.0.0.0 online-casino.webpark.pl
 0.0.0.0 online-cda.pl
 0.0.0.0 online-dn.com
+0.0.0.0 online-forex-trading-systems.blogspot.com
 0.0.0.0 online-forex.hut1.ru
 0.0.0.0 online-gebuehrenzaehler.de
 0.0.0.0 online-loading.com
 0.0.0.0 online-metrix.net
 0.0.0.0 online-mrbonk.info
 0.0.0.0 online-office365.com
+0.0.0.0 online-pharmacy-online.blogspot.com
 0.0.0.0 online-poker.shengen.ru
 0.0.0.0 online-portal-verif.de
 0.0.0.0 online-prod.zenmxapps.com
@@ -38236,6 +38286,7 @@
 0.0.0.0 otopolypusyst.com
 0.0.0.0 otoyedex.com
 0.0.0.0 otoyusuf.com
+0.0.0.0 otpercpiheno.blogspot.com
 0.0.0.0 otpercpiheno.hu
 0.0.0.0 otptoken.net
 0.0.0.0 otracking.com
@@ -38504,6 +38555,7 @@
 0.0.0.0 p6f0ak.icu
 0.0.0.0 p7.preppypm.com
 0.0.0.0 p8x4yt.sbs
+0.0.0.0 pa-cd.com
 0.0.0.0 pa-voyance.fr
 0.0.0.0 pa.5.p2l.info
 0.0.0.0 pa.wme.catchmedia.com
@@ -39258,6 +39310,7 @@
 0.0.0.0 petakfc.112.2o7.net
 0.0.0.0 petamain.112.2o7.net
 0.0.0.0 petametrics.com
+0.0.0.0 peter-north-cum-shot.blogspot.com
 0.0.0.0 petfooddirect.d1.sc.omtrdc.net
 0.0.0.0 petiatrix.com
 0.0.0.0 petitelady.top
@@ -39357,6 +39410,7 @@
 0.0.0.0 phar.gu-web.net
 0.0.0.0 pharmactives.net
 0.0.0.0 pharmacy-canada.forsearch.net
+0.0.0.0 pharmacy-news.blogspot.com
 0.0.0.0 pharmacy.hut1.ru
 0.0.0.0 pharmacyrxone.com
 0.0.0.0 pharmacyworldh.info
@@ -40311,6 +40365,7 @@
 0.0.0.0 planmark.digital
 0.0.0.0 plannerzoneh.info
 0.0.0.0 planning-analytics.ibmcloud.com
+0.0.0.0 planrecanpost1.info
 0.0.0.0 planspull.hamzehhadad.com
 0.0.0.0 plantiup.com
 0.0.0.0 plantorixio-app.com
@@ -40877,6 +40932,8 @@
 0.0.0.0 postclick.adcentriconline.com
 0.0.0.0 postcolonial.digital
 0.0.0.0 postcolonialart.digital
+0.0.0.0 postecan-canpost.confrm942.link
+0.0.0.0 postecan-canpost.updt491.link
 0.0.0.0 poster.gamesprite.me
 0.0.0.0 postergaleria.chh.pl
 0.0.0.0 postergaleria.pl
@@ -41571,6 +41628,45 @@
 0.0.0.0 protect51-booking.com
 0.0.0.0 protectcrev.com
 0.0.0.0 protected.net
+0.0.0.0 protection.ASpolice.com
+0.0.0.0 protection.AUpolice.com
+0.0.0.0 protection.AZpolice.com
+0.0.0.0 protection.BTpolice.com
+0.0.0.0 protection.BYpolice.com
+0.0.0.0 protection.CApolice.com
+0.0.0.0 protection.CCpolice.com
+0.0.0.0 protection.DKpolice.com
+0.0.0.0 protection.ESpolice.com
+0.0.0.0 protection.FRpolice.com
+0.0.0.0 protection.FXpolice.com
+0.0.0.0 protection.GApolice.com
+0.0.0.0 protection.HKpolice.com
+0.0.0.0 protection.HNpolice.com
+0.0.0.0 protection.ILpolice.com
+0.0.0.0 protection.ITpolice.com
+0.0.0.0 protection.JMpolice.com
+0.0.0.0 protection.KYpolice.com
+0.0.0.0 protection.LApolice.com
+0.0.0.0 protection.LBpolice.com
+0.0.0.0 protection.LCpolice.com
+0.0.0.0 protection.LIpolice.com
+0.0.0.0 protection.LRpolice.com
+0.0.0.0 protection.LSpolice.com
+0.0.0.0 protection.LVpolice.com
+0.0.0.0 protection.MApolice.com
+0.0.0.0 protection.MDpolice.com
+0.0.0.0 protection.MEpolice.com
+0.0.0.0 protection.MNpolice.com
+0.0.0.0 protection.NApolice.com
+0.0.0.0 protection.NCpolice.com
+0.0.0.0 protection.NZpolice.com
+0.0.0.0 protection.PApolice.com
+0.0.0.0 protection.PGpolice.com
+0.0.0.0 protection.SBpolice.com
+0.0.0.0 protection.TNpolice.com
+0.0.0.0 protection.TOpolice.com
+0.0.0.0 protection.VApolice.com
+0.0.0.0 protection.VIpolice.com
 0.0.0.0 protection.aspolice.com
 0.0.0.0 protection.aupolice.com
 0.0.0.0 protection.azpolice.com
@@ -42399,6 +42495,7 @@
 0.0.0.0 questiacom.112.2o7.net
 0.0.0.0 question2answer.com
 0.0.0.0 questionmarket.com
+0.0.0.0 questrade-pypip.com
 0.0.0.0 questsoftware.112.2o7.net
 0.0.0.0 questtrack.info
 0.0.0.0 queue.adspruce.com
@@ -43448,6 +43545,7 @@
 0.0.0.0 return.bs.domainnamesales.com
 0.0.0.0 return.domainnamesales.com
 0.0.0.0 return.uk.domainnamesales.com
+0.0.0.0 return2025costco.com
 0.0.0.0 retuvana.info
 0.0.0.0 reunion.tt.omtrdc.net
 0.0.0.0 reunioncom.112.2o7.net
@@ -43691,6 +43789,7 @@
 0.0.0.0 riod.darkm1nt.ru
 0.0.0.0 rioffpatri.site
 0.0.0.0 riolux-investir-ai.com
+0.0.0.0 riosaladohp.com
 0.0.0.0 riostaeb.com
 0.0.0.0 ripersfila.digital
 0.0.0.0 ripplebeam.cfd
@@ -47352,6 +47451,7 @@
 0.0.0.0 smetrics.vodafone.es
 0.0.0.0 smetrics.vonage.com
 0.0.0.0 smetrics.walgreens.com
+0.0.0.0 smetrics.washingtonpost.com
 0.0.0.0 smetrics.webex.com
 0.0.0.0 smetrics.wegmans.com
 0.0.0.0 smetrics.wgu.edu
@@ -51952,6 +52052,7 @@
 0.0.0.0 touchgstorage.cirugiasincicatrices.com
 0.0.0.0 touchlnervii.com
 0.0.0.0 tougheco.myflingsdate.com
+0.0.0.0 tour.SweetDiscreet.com
 0.0.0.0 tour.affbuzzads.com
 0.0.0.0 tour.brazzers.com
 0.0.0.0 tour.cineble.com
@@ -52015,6 +52116,7 @@
 0.0.0.0 tr-eu.adsmoloco.com
 0.0.0.0 tr-gmtdmp.mookie1.com
 0.0.0.0 tr-op.datatrics.com
+0.0.0.0 tr-red.lamanoqueayuda.org
 0.0.0.0 tr-reshift.datatrics.com
 0.0.0.0 tr-romsp-unifyconfig.vivoglobal.com
 0.0.0.0 tr-st-sl.vivoglobal.com
@@ -53344,6 +53446,7 @@
 0.0.0.0 tudaskor.com
 0.0.0.0 tudathalo.blogspot.hu
 0.0.0.0 tudatosanelok.com
+0.0.0.0 tudnodkel.blogspot.com
 0.0.0.0 tudnodkell.info
 0.0.0.0 tuerburwalds.com
 0.0.0.0 tufekmarketi.com
@@ -53989,6 +54092,7 @@
 0.0.0.0 uniquenesstouch.jhawins.com
 0.0.0.0 unitbud.studioguacamole.com
 0.0.0.0 unitdotto.club
+0.0.0.0 united-domaine.tech
 0.0.0.0 unitedblades.co.jp
 0.0.0.0 unitedparcelservice.sc.omtrdc.net
 0.0.0.0 unitedproductsllc.net
@@ -55105,6 +55209,7 @@
 0.0.0.0 viad.fr
 0.0.0.0 viagametrailers.112.2o7.net
 0.0.0.0 viagamix.com
+0.0.0.0 viagra-pill.blogspot.com
 0.0.0.0 viagra-soft-tabs.1.p2l.info
 0.0.0.0 viagra-store.shengen.ru
 0.0.0.0 viagra.1.p2l.info
@@ -55292,6 +55397,7 @@
 0.0.0.0 vik-analytics-gke.moonactive.net
 0.0.0.0 vik-analytics.moonactive.net
 0.0.0.0 vilagfigyelo.com
+0.0.0.0 vilaghelyzete.blogspot.com
 0.0.0.0 vilagpolgarok.blogspot.hu
 0.0.0.0 vilagunk.hu
 0.0.0.0 vilenexus.com
@@ -55768,6 +55874,7 @@
 0.0.0.0 virelostaquandimeraxus.mom
 0.0.0.0 vireon-solvar.net
 0.0.0.0 virestano.help
+0.0.0.0 virewin.com
 0.0.0.0 virexulantemo.cloud
 0.0.0.0 virginmedia.112.2o7.net
 0.0.0.0 virginmobile.122.2o7.net
@@ -56577,6 +56684,7 @@
 0.0.0.0 wealthengine-ai.com
 0.0.0.0 wealthforgeaiapp.com
 0.0.0.0 wealthlino.com
+0.0.0.0 wealthsimple-dwvip.com
 0.0.0.0 wealthxandorin-app.com
 0.0.0.0 wealthxandorintech-com.financecryptoworld.com
 0.0.0.0 wealtria.com
@@ -57386,6 +57494,7 @@
 0.0.0.0 wp-stat.s3.amazonasw.com
 0.0.0.0 wp-stats.com
 0.0.0.0 wp1.cor-natty.com
+0.0.0.0 wpad
 0.0.0.0 wpad.engineer
 0.0.0.0 wpad.exchange
 0.0.0.0 wpad.exposed
@@ -66554,6 +66663,7 @@
 0.0.0.0 www.fhatfee.ero-advertising.com
 0.0.0.0 www.fhgfffdsf9.appspot.com
 0.0.0.0 www.fhserve.com
+0.0.0.0 www.fhtmmeeting.com
 0.0.0.0 www.fi88t.online
 0.0.0.0 www.fibernetim.net
 0.0.0.0 www.fiberoptikbodrum.com
@@ -76606,6 +76716,7 @@
 0.0.0.0 www.prriceline.com
 0.0.0.0 www.prsfire.com
 0.0.0.0 www.prtc.net
+0.0.0.0 www.pruialoatpmye.xyz
 0.0.0.0 www.prunexio.club
 0.0.0.0 www.pruszkow2019.pl
 0.0.0.0 www.prywanite5ai3-025928.cfd
@@ -85664,6 +85775,7 @@
 0.0.0.0 xg4ken.com
 0.0.0.0 xgdubai.com
 0.0.0.0 xhealth.112.2o7.net
+0.0.0.0 xhealthmobiletools.112.2o7.net
 0.0.0.0 xhealthmobiltools.112.2o7.net
 0.0.0.0 xhospital.org
 0.0.0.0 xhostinguy.ru
@@ -86165,6 +86277,7 @@
 0.0.0.0 yourgodess.com
 0.0.0.0 yourhealthturkey.com
 0.0.0.0 youripad4free.com
+0.0.0.0 yourofficialsurveysplace.store
 0.0.0.0 yourrewardzone.com
 0.0.0.0 yourshoppingsecrets.com
 0.0.0.0 yoursmartrewards.com

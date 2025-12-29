@@ -1,8 +1,9 @@
 ! Adblock规则
-! 最后更新: 2025-12-29 19:41:23
-! 规则总数: 67221
+! 最后更新: 2025-12-30 03:51:14
+! 规则总数: 67231
 ! 
 ! 由智能广告规则处理系统生成
+! 时区: 上海 (UTC+8)
 ! GitHub: https://github.com/wansheng8/ad-rule-automation
 !
 
@@ -10637,6 +10638,14 @@ zoohit.*,zooplus.*##div[class^="SearchSuggestion-module_suggestionItem_"]:has(.z
 zoohit.*,zooplus.*##div[data-zta="product-card"]:has(.z-sponsored-tag)
 zoonek.com##.fullwidth-ads
 zpaste.net##.uk-animation-shake
+|167.206.10.148^
+|about:$popup,domain=22pixx.xyz|adblockstrtape.link|bitporno.com|clipconverter.cc|dailyuploads.net|dood.la|dood.so|dood.to|dood.video|dood.watch|dood.ws|doodcdn.com|flashx.net|gospeljingle.com|hqq.tv|imagetwist.com|mixdrop.bz|mixdrop.sx|mp4upload.com|nextgencloudtools.com|playtube.ws|popads.net|powvideo.net|powvldeo.cc|putlocker.style|run-syndicate.com|soap2day.tf|strcloud.link|streamani.net|streamtape.cc|streamtape.com|streamtape.site|strtape.cloud|strtape.tech|strtapeadblock.club|strtapeadblock.me|strtpe.link|supervideo.cc|tapecontent.net|turboimagehost.com|upstream.to|uptostream.com|uptostream.eu|uptostream.fr|uptostream.link|userload.co|vev.red|vevo.io|vidcloud.co|vidoza.net|voe.sx|vortez.net|vshare.eu|watchserieshd.tv
+|blob:$popup,domain=hqq.tv|waaw.to|watchadsontape.com
+|data:text$popup,domain=~clker.com
+|dddata:text$popup
+|http*://*?$popup,third-party,domain=forums.socialmediagirls.com|pornhub.com|redtube.com|tube8.com|youporn.com|youporngay.com
+|javascript:*setTimeout$popup
+|javascript:*window.location$popup
 ||000webhost.com/images/banners/
 ||0014b04291.com^
 ||0019x.com^
@@ -28391,6 +28400,7 @@ zpaste.net##.uk-animation-shake
 ||ewvywlqn.net^
 ||ewyjmkgvvtoxy.space^
 ||ewyvuznndlmrk.online^
+||ewzgfdqzhyaoj.website^
 ||exacdn.com^
 ||exactdrive.com^$third-party
 ||exactlyrutisland.com^
@@ -60742,6 +60752,7 @@ zpaste.net##.uk-animation-shake
 ||umnxdbvgstipt.website^
 ||umoopuwhecky.net^
 ||umoutzwnfxuil.space^
+||umpfvmht.com^
 ||umphacinic.cfd^
 ||umpiredmosettebibulus.cfd^
 ||umpwcnltxmnue.online^
