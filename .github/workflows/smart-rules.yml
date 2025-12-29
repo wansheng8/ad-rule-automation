@@ -1,0 +1,225 @@
+name: 智能广告规则更新
+
+on:
+  # 定时执行
+  schedule:
+    - cron: '0 2 * * *'  # 每天UTC 2点（北京时间10点）
+  
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '运行模式'
+        required: false
+        default: 'normal'
+        type: choice
+        options:
+          - normal
+          - test
+          - force
+  
+  # 推送触发
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'scripts/**'
+      - 'config/**'
+      - '.github/workflows/**'
+
+# 设置工作流权限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    
+    steps:
+      - name: 🛎️ 检出代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: 🐍 设置Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: 📦 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: 🧪 运行规则处理
+        id: process
+        run: |
+          echo "开始智能规则处理..."
+          
+          # 根据输入选择模式
+          MODE="${{ github.event.inputs.mode || 'normal' }}"
+          echo "运行模式: $MODE"
+          
+          if [ "$MODE" = "test" ]; then
+            python scripts/smart_rule_processor.py --test --verbose
+          elif [ "$MODE" = "force" ]; then
+            python scripts/smart_rule_processor.py --verbose
+          else
+            python scripts/smart_rule_processor.py
+          fi
+          
+          # 统计结果
+          if [ -d "dist" ]; then
+            LATEST_ADBLOCK=$(ls -t dist/adblock_optimized_*.txt 2>/dev/null | head -1)
+            LATEST_HOSTS=$(ls -t dist/hosts_optimized_*.txt 2>/dev/null | head -1)
+            
+            if [ -f "$LATEST_ADBLOCK" ]; then
+              AD_COUNT=$(grep -c '^[^!]' "$LATEST_ADBLOCK" || echo "0")
+              echo "adblock_count=$AD_COUNT" >> $GITHUB_OUTPUT
+            fi
+            
+            if [ -f "$LATEST_HOSTS" ]; then
+              HOSTS_COUNT=$(grep -c '^0\.0\.0\.0' "$LATEST_HOSTS" || echo "0")
+              echo "hosts_count=$HOSTS_COUNT" >> $GITHUB_OUTPUT
+            fi
+          fi
+      
+      - name: 📊 检查变更
+        id: check-changes
+        run: |
+          echo "检查文件变更..."
+          
+          # 创建变更标记文件
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          echo "检查时间: $TIMESTAMP" > changes.log
+          
+          # 检查dist目录变更
+          if [ -d "dist" ]; then
+            echo "dist目录文件:" >> changes.log
+            ls -la dist/ >> changes.log
+            
+            # 比较最新文件
+            git status dist/ >> changes.log 2>&1
+          fi
+          
+          # 检查是否有未提交的变更
+          if git diff --quiet; then
+            echo "没有发现变更"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "发现文件变更"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            
+            # 列出变更文件
+            echo "变更文件列表:" >> changes.log
+            git status --porcelain >> changes.log
+          fi
+          
+          # 上传变更日志
+          if [ -f "changes.log" ]; then
+            echo "变更日志:" 
+            cat changes.log
+          fi
+      
+      - name: 🚀 提交变更
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          echo "提交变更到GitHub..."
+          
+          # 配置Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 获取最新文件统计
+          COMMIT_MESSAGE="🤖 智能规则更新 [$(date +'%Y-%m-%d')]\n\n"
+          
+          if [ -d "dist" ]; then
+            LATEST_ADBLOCK=$(ls -t dist/adblock_optimized_*.txt 2>/dev/null | head -1)
+            LATEST_HOSTS=$(ls -t dist/hosts_optimized_*.txt 2>/dev/null | head -1)
+            LATEST_STATS=$(ls -t stats/stats_*.json 2>/dev/null | head -1)
+            
+            if [ -f "$LATEST_ADBLOCK" ] && [ -f "$LATEST_HOSTS" ] && [ -f "$LATEST_STATS" ]; then
+              # 从统计文件读取数据
+              STATS_DATA=$(cat "$LATEST_STATS")
+              AD_COUNT=$(echo "$STATS_DATA" | grep -o '"adblock": [0-9]*' | head -1 | grep -o '[0-9]*')
+              HOSTS_COUNT=$(echo "$STATS_DATA" | grep -o '"hosts_domains": [0-9]*' | head -1 | grep -o '[0-9]*')
+              
+              COMMIT_MESSAGE+="📊 本次更新统计:\n"
+              COMMIT_MESSAGE+="- Adblock规则: $AD_COUNT 条\n"
+              COMMIT_MESSAGE+="- Hosts域名: $HOSTS_COUNT 个\n"
+              COMMIT_MESSAGE+="- 处理时间: $(date +'%H:%M:%S')\n"
+              COMMIT_MESSAGE+="\n📁 生成文件:\n"
+              
+              for file in "$LATEST_ADBLOCK" "$LATEST_HOSTS" "$LATEST_STATS"; do
+                FILENAME=$(basename "$file")
+                SIZE=$(du -h "$file" | cut -f1)
+                COMMIT_MESSAGE+="- \`$FILENAME\` ($SIZE)\n"
+              done
+            fi
+          fi
+          
+          # 添加所有变更并提交
+          git add .
+          echo -e "$COMMIT_MESSAGE" | git commit -F -
+          
+          # 推送到仓库
+          git push
+          
+          echo "✅ 变更已提交"
+      
+      - name: 📈 生成GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          keep_files: false
+          force_orphan: true
+      
+      - name: 📋 生成工作流报告
+        if: always()
+        run: |
+          echo "### 🚀 智能规则处理报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**运行时间**: $(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-changes.outputs.has_changes }}" = "true" ]; then
+            echo "**状态**: ✅ 规则已更新并提交" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**规则统计**: " >> $GITHUB_STEP_SUMMARY
+            echo "- Adblock规则: ${{ steps.process.outputs.adblock_count || 'N/A' }} 条" >> $GITHUB_STEP_SUMMARY
+            echo "- Hosts域名: ${{ steps.process.outputs.hosts_count || 'N/A' }} 个" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**状态**: ℹ️ 规则未发生变化" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          
+          # 显示最新文件
+          if [ -d "dist" ]; then
+            echo "**最新生成的文件**: " >> $GITHUB_STEP_SUMMARY
+            ls -t dist/*.txt 2>/dev/null | head -5 | while read file; do
+              filename=$(basename "$file")
+              size=$(du -h "$file" | cut -f1)
+              lines=$(wc -l < "$file" | tr -d ' ')
+              echo "- \`$filename\` ($size, $lines 行)" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**使用说明**: " >> $GITHUB_STEP_SUMMARY
+          echo "1. Adblock规则: 导入到uBlock Origin、AdGuard等浏览器扩展" >> $GITHUB_STEP_SUMMARY
+          echo "2. Hosts规则: 复制到系统hosts文件（需要管理员权限）" >> $GITHUB_STEP_SUMMARY
+          echo "3. 访问 [GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/) 查看最新规则" >> $GITHUB_STEP_SUMMARY
