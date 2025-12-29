@@ -1,15 +1,15 @@
 {
   "processing_info": {
-    "start_time": "2025-12-30 04:08:10",
-    "end_time": "2025-12-30 04:08:11",
-    "total_duration_seconds": 0.52,
+    "start_time": "2025-12-30 04:32:01",
+    "end_time": "2025-12-30 04:32:02",
+    "total_duration_seconds": 0.57,
     "update_status": "updated",
     "shanghai_timezone": true
   },
   "rules_summary": {
-    "adblock_rules": 67233,
+    "adblock_rules": 67237,
     "hosts_entries": 86944,
-    "total_processed": 154177
+    "total_processed": 154181
   },
   "sources_summary": {
     "total_sources": 4,
@@ -18,46 +18,46 @@
     "success_rate": 100.0
   },
   "source_details": {
-    "https://easylist.to/easylist/easylist.txt": {
+    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
       "status": "success",
-      "lines": 81930,
-      "time_seconds": 0.12,
-      "size_bytes": 2095884
+      "lines": 1020,
+      "time_seconds": 0.05,
+      "size_bytes": 27697
     },
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
       "status": "success",
       "lines": 93595,
-      "time_seconds": 0.16,
+      "time_seconds": 0.11,
       "size_bytes": 2574324
     },
-    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
+    "https://easylist.to/easylist/easylist.txt": {
       "status": "success",
-      "lines": 1020,
-      "time_seconds": 0.16,
-      "size_bytes": 27697
+      "lines": 81934,
+      "time_seconds": 0.12,
+      "size_bytes": 2095973
     },
     "https://someonewhocares.org/hosts/zero/hosts": {
       "status": "success",
       "lines": 12140,
-      "time_seconds": 0.22,
+      "time_seconds": 0.28,
       "size_bytes": 330689
     }
   },
   "rules_by_source": {
-    "https://easylist.to/easylist/easylist.txt": {
-      "adblock": 66414,
+    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
+      "adblock": 841,
       "hosts": 0,
-      "total": 66414
+      "total": 841
     },
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
       "adblock": 0,
       "hosts": 86835,
       "total": 86835
     },
-    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
-      "adblock": 819,
+    "https://easylist.to/easylist/easylist.txt": {
+      "adblock": 66396,
       "hosts": 0,
-      "total": 819
+      "total": 66396
     },
     "https://someonewhocares.org/hosts/zero/hosts": {
       "adblock": 0,

@@ -1,6 +1,6 @@
 ! Adblock规则
-! 最后更新: 2025-12-30 04:08:11
-! 规则总数: 67233
+! 最后更新: 2025-12-30 04:32:02
+! 规则总数: 67237
 ! 更新状态: updated
 ! 
 ! 由智能广告规则处理系统生成
@@ -33891,6 +33891,7 @@ zpaste.net##.uk-animation-shake
 ||hilsuceetsafow.net^
 ||hiltonbett.com^$popup
 ||hiltszbirzcky.store^
+||himatiaayinsstelled.cfd^
 ||himawaasi.cyou^
 ||hime-books.xyz/wp-comment/?form=$subdocument
 ||himediads.com^
@@ -35161,6 +35162,7 @@ zpaste.net##.uk-animation-shake
 ||ie8eamus.com^
 ||iedtothema.org^
 ||ieecjjfzmbhgs.site^
+||iegbhbkgnglsz.site^
 ||ieglcoaqlzesp.store^
 ||iegrozrmvgjfp.online^
 ||iehbhejfnetvc.site^
@@ -36904,6 +36906,7 @@ zpaste.net##.uk-animation-shake
 ||jcmkelvabngzu.site^
 ||jconceoormurg.online^
 ||jcpvwiwocdsu.com^
+||jcqsiwmyioxsu.online^
 ||jcrjnskoroprdp.com^
 ||jcsbdfpddlahn.online^
 ||jcsjeisnswjmp.site^
@@ -60172,6 +60175,7 @@ zpaste.net##.uk-animation-shake
 ||twbschithgosa.space^
 ||twcqptldcqoza.online^
 ||twcxhhfkug.com^
+||twddlykk.com^
 ||twdgdoukcxtby.xyz^
 ||tweadsialing.com^
 ||tweakpersuadelowest.com^
