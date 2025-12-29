@@ -1,7 +1,14 @@
 name: 智能广告规则更新
 
 on:
-  workflow_dispatch:       # 我们先专注手动触发，调试成功后可以恢复定时触发
+  schedule:
+    - cron: '0 2 * * *'  # 每天UTC时间2点（北京时间10点）自动运行
+  workflow_dispatch:       # 允许手动触发
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/**'
+      - 'config/**'
 
 permissions:
   contents: write
@@ -12,155 +19,203 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # 1. 彻底清理并拉取代码（关键修改：增加清除配置）
-      - name: 检出仓库代码 (强制全新环境)
+      # 1. 拉取仓库代码（强制全新环境）
+      - name: 检出仓库代码
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
           clean: true
-          # 以下配置确保彻底清理并获取所有分支和标签
-          ref: ${{ github.ref }}
 
-      # 2. 在运行前，首先验证仓库中的脚本内容
-      - name: 验证当前脚本版本
-        run: |
-          echo "=== 验证仓库中脚本的最后修改时间 ==="
-          git log -1 --oneline -- scripts/smart_rule_processor.py
-          echo ""
-          echo "=== 验证脚本中关键时间函数 ==="
-          grep -n "datetime.now()" scripts/smart_rule_processor.py || echo "未找到 datetime.now()"
-          echo ""
-          echo "=== 系统当前时间 (UTC) ==="
-          date -u
-          echo "=== 系统当前时间 (本地) ==="
-          date
-
-      # 3. 设置Python环境
+      # 2. 设置Python环境
       - name: 设置Python环境
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 4. 安装依赖（每次全新安装，不使用缓存）
+      # 3. 安装依赖
       - name: 安装Python依赖
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests pyyaml --no-cache-dir
+        run: pip install -r requirements.txt
 
-      # 5. 运行脚本并捕获详细日志
-      - name: 运行规则处理脚本 (详细日志)
+      # 4. 🗑️ 核心新增：清理之前生成的文件
+      - name: 清理之前生成的文件
         run: |
-          echo "=== 运行前系统时间 ==="
-          date
-          echo ""
-          echo "=== 运行脚本，开启调试模式 ==="
-          python scripts/smart_rule_processor.py --verbose 2>&1 | tee /tmp/script_output.log
-          echo ""
-          echo "=== 脚本运行完成，检查返回值 ==="
-          echo "脚本退出代码: $?"
-
-      # 6. 深入诊断生成的文件和时间戳
-      - name: 深度诊断 - 验证生成结果
-        run: |
-          echo "=== 诊断时间点 ==="
-          date
-          echo ""
+          echo "=== 清理之前生成的文件 ==="
           
-          echo "=== 检查 dist/ 目录 ==="
-          ls -la dist/ 2>/dev/null || echo "dist 目录不存在！"
-          echo ""
-          
-          if [ -f "dist/adblock_optimized.txt" ]; then
-            echo "=== Adblock 文件详情 ==="
-            echo "文件大小: $(wc -c < dist/adblock_optimized.txt) 字节"
-            echo "行数: $(wc -l < dist/adblock_optimized.txt)"
-            echo ""
-            echo "--- 文件前10行 ---"
-            head -10 dist/adblock_optimized.txt
-            echo ""
-            echo "--- 文件中是否包含时间戳 '2025-12-29'? ---"
-            if grep -q "2025-12-29" dist/adblock_optimized.txt; then
-              echo "❌ 发现旧时间戳 '2025-12-29'"
-              grep "2025-12-29" dist/adblock_optimized.txt
-            else
-              echo "✅ 未发现旧时间戳"
-              grep -E "202[0-9]-[0-9]{2}-[0-9]{2}" dist/adblock_optimized.txt || echo "未找到时间戳格式"
+          # 检查dist目录是否存在
+          if [ -d "dist" ]; then
+            echo "清理dist目录中的文件..."
+            
+            # 删除之前生成的所有文件，但保留dist目录
+            find dist/ -type f -name "*.txt" -delete
+            find dist/ -type f -name "*.json" -delete
+            find dist/ -type f -name "*.log" -delete
+            
+            echo "剩余文件:"
+            ls -la dist/ 2>/dev/null || echo "dist目录为空"
+            
+            # 如果dist目录完全为空，可以删除目录（可选）
+            if [ -z "$(ls -A dist/ 2>/dev/null)" ]; then
+              echo "dist目录为空，移除..."
+              rmdir dist/
             fi
           else
-            echo "❌ Adblock 文件不存在"
+            echo "dist目录不存在，无需清理"
           fi
           
-          echo ""
-          echo "=== 检查文件系统时间戳 ==="
-          if [ -f "dist/adblock_optimized.txt" ]; then
-            echo "文件最后修改时间:"
-            stat -c %y dist/adblock_optimized.txt 2>/dev/null || ls -la dist/adblock_optimized.txt
+          # 清理stats目录中的临时文件（但保留目录结构）
+          if [ -d "stats" ]; then
+            echo "清理stats目录中的临时文件..."
+            find stats/ -type f -name "*.log" -delete
+            find stats/ -type f -name "*.tmp" -delete
+          fi
+          
+          echo "清理完成 ✅"
+
+      # 5. 运行核心处理脚本
+      - name: 运行规则处理脚本
+        run: |
+          echo "=== 开始运行脚本 ==="
+          date
+          python scripts/smart_rule_processor.py
+          echo "=== 脚本运行完成 ==="
+          date
+
+      # 6. 验证生成的文件
+      - name: 验证生成结果
+        run: |
+          echo "=== 验证生成的文件 ==="
+          
+          if [ -d "dist" ]; then
+            echo "生成的文件列表:"
+            ls -la dist/
+            echo ""
+            
+            if [ -f "dist/adblock_optimized.txt" ]; then
+              echo "Adblock文件前3行:"
+              head -3 dist/adblock_optimized.txt
+              echo ""
+              echo "Adblock规则数量: $(grep -c '^[^!]' dist/adblock_optimized.txt 2>/dev/null || echo '0')"
+            else
+              echo "❌ Adblock文件未生成"
+            fi
+            
+            if [ -f "dist/hosts_optimized.txt" ]; then
+              echo ""
+              echo "Hosts文件前3行:"
+              head -3 dist/hosts_optimized.txt
+              echo ""
+              echo "Hosts规则数量: $(grep -c '^0\.0\.0\.0' dist/hosts_optimized.txt 2>/dev/null || echo '0')"
+            else
+              echo "❌ Hosts文件未生成"
+            fi
+          else
+            echo "❌ dist目录未生成"
           fi
 
-      # 7. 提交更改（使用当前真实时间）
+      # 7. 配置Git并提交更改
       - name: 提交生成的规则文件
         run: |
-          # 再次确认当前时间
-          echo "=== 提交步骤开始时间 ==="
-          date
-          echo ""
-          
           # 设置Git用户信息
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 检查文件状态
-          echo "=== 检查Git状态 ==="
-          git status --short
-          echo ""
+          # 检查是否有文件要提交
+          echo "=== 检查变更 ==="
           
-          # 添加文件
+          # 首先确保dist目录存在
+          if [ ! -d "dist" ]; then
+            echo "❌ dist目录不存在，无法提交"
+            exit 1
+          fi
+          
+          # 检查dist目录是否有文件
+          if [ -z "$(ls -A dist/ 2>/dev/null)" ]; then
+            echo "❌ dist目录为空，没有文件可提交"
+            exit 1
+          fi
+          
+          # 添加文件到Git
           git add dist/
           
-          # 提交（使用当前系统时间）
+          # 检查状态
+          echo "=== Git状态 ==="
+          git status --porcelain
+          
+          # 提交更改（使用当前时间）
           CURRENT_TIME=$(date +'%Y-%m-%d %H:%M:%S')
-          echo "准备提交，提交信息时间: $CURRENT_TIME"
+          echo "准备提交，时间: $CURRENT_TIME"
           
           if git diff --staged --quiet; then
-            echo "没有检测到文件变更，无需提交。"
+            echo "⚠️ 没有检测到文件变更，无需提交。"
+            echo "可能原因："
+            echo "1. 脚本未生成新文件"
+            echo "2. 生成的文件与之前完全相同"
+            echo "3. .gitignore排除了这些文件"
+            
+            # 输出.gitignore对dist目录的影响
+            echo ""
+            echo "=== .gitignore检查 ==="
+            git check-ignore dist/* 2>/dev/null || echo "没有.gitignore规则影响dist目录"
           else
             git commit -m "🤖 自动更新广告规则 [$CURRENT_TIME]"
-            
-            # 推送前再次验证
-            echo "=== 最后验证提交信息 ==="
-            git log -1 --oneline
-            
             git push
             echo "✅ 规则文件已提交并推送！"
+            
+            # 显示提交信息
+            echo "提交哈希: $(git rev-parse --short HEAD)"
           fi
 
-      # 8. 生成最终报告
+      # 8. 生成总结报告
       - name: 生成总结报告
         if: always()
         run: |
-          echo "### 🕒 规则处理时间诊断报告" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 规则更新报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**运行完成时间**: $(date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "**工作流执行时间**: $(date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
+          # 清理步骤状态
+          echo "**清理状态**: ✅ 已清理之前生成的文件" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # 检查最终文件状态
-          if [ -f "dist/adblock_optimized.txt" ]; then
-            echo "**Adblock文件时间戳检查**: " >> $GITHUB_STEP_SUMMARY
-            FILE_TIME=$(head -3 dist/adblock_optimized.txt | grep -E "202[0-9]-[0-9]{2}-[0-9]{2}" || echo "未找到时间戳")
-            echo "- 文件头中的时间: $FILE_TIME" >> $GITHUB_STEP_SUMMARY
+          # 文件生成状态
+          echo "**文件生成状态**: " >> $GITHUB_STEP_SUMMARY
+          if [ -f "dist/adblock_optimized.txt" ] && [ -f "dist/hosts_optimized.txt" ]; then
+            echo "✅ 两个核心文件均已生成" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
             
-            if echo "$FILE_TIME" | grep -q "2025-12-29"; then
-              echo "  - ❌ **警告**: 文件包含旧的测试时间戳 (2025-12-29)" >> $GITHUB_STEP_SUMMARY
-              echo "  - 可能原因: 脚本未正确更新或存在缓存" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "  - ✅ 时间戳正常" >> $GITHUB_STEP_SUMMARY
-            fi
+            # 获取文件统计
+            AD_COUNT=$(grep -c '^[^!]' "dist/adblock_optimized.txt" 2>/dev/null || echo "0")
+            HOSTS_COUNT=$(grep -c '^0\.0\.0\.0' "dist/hosts_optimized.txt" 2>/dev/null || echo "0")
+            
+            # 获取文件中的时间戳
+            AD_TIME=$(head -3 dist/adblock_optimized.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo "未找到")
+            HOSTS_TIME=$(head -3 dist/hosts_optimized.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo "未找到")
+            
+            echo "**规则统计**: " >> $GITHUB_STEP_SUMMARY
+            echo "- Adblock规则: $AD_COUNT 条 (时间: $AD_TIME)" >> $GITHUB_STEP_SUMMARY
+            echo "- Hosts域名: $HOSTS_COUNT 个 (时间: $HOSTS_TIME)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ 文件生成失败" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**可能原因**: " >> $GITHUB_STEP_SUMMARY
+            echo "1. 脚本执行出错" >> $GITHUB_STEP_SUMMARY
+            echo "2. 网络问题导致规则获取失败" >> $GITHUB_STEP_SUMMARY
+            echo "3. 脚本逻辑错误" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**诊断建议**: " >> $GITHUB_STEP_SUMMARY
-          echo "1. 检查 '验证当前脚本版本' 步骤，确认脚本最后修改时间" >> $GITHUB_STEP_SUMMARY
-          echo "2. 检查 '深度诊断' 步骤中文件是否包含旧时间戳" >> $GITHUB_STEP_SUMMARY
-          echo "3. 如果时间仍不正确，请检查脚本中的 datetime.now() 调用" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**输出文件**: " >> $GITHUB_STEP_SUMMARY
+          find dist -name "*.txt" -type f 2>/dev/null | while read file; do
+            filename=$(basename "$file")
+            size=$(du -h "$file" | cut -f1)
+            lines=$(wc -l < "$file" | tr -d ' ')
+            echo "- \`$filename\` ($size, $lines 行)" >> $GITHUB_STEP_SUMMARY
+          done || echo "- 无输出文件" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**使用说明**: " >> $GITHUB_STEP_SUMMARY
+          echo "1. Adblock规则: 导入到uBlock Origin、AdGuard等浏览器扩展" >> $GITHUB_STEP_SUMMARY
+          echo "2. Hosts规则: 复制到系统hosts文件（需要管理员权限）" >> $GITHUB_STEP_SUMMARY
