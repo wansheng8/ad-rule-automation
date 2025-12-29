@@ -1,62 +1,7 @@
-# 规则源配置文件
-# 格式：每行一个URL，支持分组和注释
-
-# ========== 广告规则源 ==========
-# AdGuard 基础规则
-- https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt
-
-# EasyList 主要规则
-- https://easylist.to/easylist/easylist.txt
-
-# EasyPrivacy 隐私规则
-- https://easylist.to/easylist/easyprivacy.txt
-
-# uBlock Origin 规则
-- https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt
-- https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/annoyances.txt
-- https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/privacy.txt
-
-# ========== Hosts规则源 ==========
-# Steven Black's Hosts
-- https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-
-# someonewhocares.org
-- https://someonewhocares.org/hosts/zero/hosts
-
-# NoTracking
-- https://raw.githubusercontent.com/notracking/hosts-blocklists/master/hostnames.txt
-
-# yoyo.org
-- https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext
-
-# ========== 国内规则源 ==========
-# yhosts
-- https://raw.githubusercontent.com/vokins/yhosts/master/hosts.txt
-
-# anti-AD
-- https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-easylist.txt
-
-# cjxlist
-- https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt
-
-# ========== 恶意软件/追踪 ==========
-# 2o7Net tracking
-- https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.2o7Net/hosts
-
-# Risk sites
-- https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.Risk/hosts
-
-# Spam sites
-- https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.Spam/hosts
-
-# ========== 其他规则源 ==========
-# Disconnect.me lists
-- https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
-- https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt
-
-# Anudeep's lists
-- https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt
-- https://raw.githubusercontent.com/anudeepND/blacklist/master/facebook.txt
-
-# 自定义规则源（在此添加）
-# - https://your-custom-rules.com/list.txt
+- "https://adaway.org/hosts.txt"
+- "https://filters.adavoid.org/ultimate-ad-filter.txt"
+- "https://filters.adavoid.org/ultimate-privacy-filter.txt"
+- "https://filters.adavoid.org/ultimate-security-filter.txt"
+- "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt"
+# ...（中间是你提供的所有链接）
+- "https://raw.githubusercontent.com/REIJI007/Adblock-Rule-Collection/main/Whitelist.txt"
