@@ -6,6 +6,7 @@
 
 import os
 import sys
+import re
 import yaml
 import json
 import time
@@ -13,6 +14,7 @@ import logging
 import argparse
 from datetime import datetime
 from typing import Dict, List, Set, Tuple, Optional
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # 添加项目根目录到Python路径
@@ -75,7 +77,7 @@ class RuleFetcher:
         
         # 设置请求头
         session.headers.update({
-            'User-Agent': Config.get_user_agent(),
+            'User-Agent': 'AdRuleAutomation/1.0',
             'Accept': 'text/plain, application/octet-stream, */*',
             'Accept-Language': 'en-US,en;q=0.9',
         })
@@ -265,7 +267,7 @@ class RuleOptimizer:
             
             # 关键词优先级
             rule_lower = rule.lower()
-            for keyword in Config.HIGH_PRIORITY_KEYWORDS:
+            for keyword in ['ad', 'ads', 'track', 'analytics']:
                 if keyword in rule_lower:
                     priority += 30
                     break
@@ -303,7 +305,7 @@ class RuleOptimizer:
             optimized.append(rule)
             
             # 限制数量
-            if len(optimized) >= Config.MAX_RULES_PER_TYPE:
+            if len(optimized) >= getattr(Config, 'MAX_RULES_PER_TYPE', 50000):
                 break
         
         return optimized
@@ -336,7 +338,7 @@ class RuleOptimizer:
             if RuleAnalyzer.is_valid_domain(domain)
         })
         
-        return domains[:Config.MAX_RULES_PER_TYPE]
+        return domains[:getattr(Config, 'MAX_RULES_PER_TYPE', 50000)]
 
 class SmartRuleProcessor:
     """智能规则处理器 - 主类"""
@@ -373,8 +375,11 @@ class SmartRuleProcessor:
         # 3. 使用默认规则源
         if not sources:
             logger.warning("未找到规则源文件，使用默认规则源")
-            for category in DEFAULT_RULE_SOURCES.values():
-                sources.extend(category)
+            sources = [
+                "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
+                "https://easylist.to/easylist/easylist.txt",
+                "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+            ]
         
         # 去重
         return list(set(sources))
@@ -397,15 +402,10 @@ class SmartRuleProcessor:
         logger.info("优化规则")
         adblock_rules = self.optimizer.optimize_adblock()
         hosts_rules = self.optimizer.optimize_hosts()
-        domain_rules = self.optimizer.optimize_domains()
         
-        # 4. 保存结果
+        # 4. 保存结果 - 只保存两个核心文件
         logger.info("保存结果")
-        results = self._save_results(
-            adblock_rules, 
-            hosts_rules, 
-            domain_rules
-        )
+        results = self._save_results(adblock_rules, hosts_rules)
         
         # 5. 生成统计报告
         elapsed_time = time.time() - start_time
@@ -423,22 +423,16 @@ class SmartRuleProcessor:
             if rule_type != 'comment' and confidence > 0.3:
                 self.optimizer.add_rule(line.strip(), rule_type)
     
-    def _save_results(self, adblock_rules, hosts_rules, domain_rules):
-        """保存优化后的规则"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        
+    def _save_results(self, adblock_rules, hosts_rules):
+        """保存优化后的规则 - 只生成两个固定文件"""
         # 确保输出目录存在
         os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
         os.makedirs(Config.STATS_DIR, exist_ok=True)
-        os.makedirs(Config.BACKUP_DIR, exist_ok=True)
         
         results = {}
         
-        # 1. 保存Adblock规则
-        adblock_file = os.path.join(
-            Config.OUTPUT_DIR, 
-            f"adblock_optimized_{timestamp}.txt"
-        )
+        # 1. 保存Adblock规则 - 固定文件名
+        adblock_file = os.path.join(Config.OUTPUT_DIR, "adblock_optimized.txt")
         
         with open(adblock_file, 'w', encoding='utf-8') as f:
             f.write(self._generate_header('Adblock规则', len(adblock_rules)))
@@ -447,11 +441,8 @@ class SmartRuleProcessor:
         results['adblock'] = adblock_file
         logger.info(f"保存Adblock规则: {len(adblock_rules)} 条")
         
-        # 2. 保存Hosts规则
-        hosts_file = os.path.join(
-            Config.OUTPUT_DIR, 
-            f"hosts_optimized_{timestamp}.txt"
-        )
+        # 2. 保存Hosts规则 - 固定文件名
+        hosts_file = os.path.join(Config.OUTPUT_DIR, "hosts_optimized.txt")
         
         with open(hosts_file, 'w', encoding='utf-8') as f:
             f.write(self._generate_header('Hosts规则', 
@@ -462,25 +453,12 @@ class SmartRuleProcessor:
                     f.write(f"{ip} {domain}\n")
         
         results['hosts'] = hosts_file
+        logger.info(f"保存Hosts规则: {sum(len(d) for d in hosts_rules.values())} 条")
         
-        # 3. 保存域名列表
-        domain_file = os.path.join(
-            Config.OUTPUT_DIR, 
-            f"domains_{timestamp}.txt"
-        )
-        
-        with open(domain_file, 'w', encoding='utf-8') as f:
-            f.write(f"# 域名列表\n")
-            f.write(f"# 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"# 总数: {len(domain_rules)}\n\n")
-            f.write('\n'.join(domain_rules))
-        
-        results['domains'] = domain_file
-        
-        # 4. 保存统计信息
+        # 3. 保存统计信息
         stats_file = os.path.join(
             Config.STATS_DIR, 
-            f"stats_{timestamp}.json"
+            f"stats_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
         
         stats_data = {
@@ -492,7 +470,6 @@ class SmartRuleProcessor:
             'output_counts': {
                 'adblock': len(adblock_rules),
                 'hosts_domains': sum(len(d) for d in hosts_rules.values()),
-                'domains': len(domain_rules),
             },
             'performance': {
                 'successful_fetches': self.fetcher.success_count,
@@ -510,11 +487,11 @@ class SmartRuleProcessor:
     def _generate_header(self, title: str, count: int) -> str:
         """生成文件头部信息"""
         return f"""! {title}
-! 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+! 最后更新: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 ! 规则总数: {count}
 ! 
 ! 由智能广告规则处理系统生成
-! GitHub: https://github.com/{Config.REPO_OWNER}/{Config.REPO_NAME}
+! GitHub: https://github.com/wansheng8/ad-rule-automation
 ! 
 ! 统计信息:
 ! - 处理规则源: {len(self.rule_sources)} 个
@@ -552,15 +529,12 @@ class SmartRuleProcessor:
             f.write(f"| 总计 | {self.optimizer.stats['total_processed']} | - |\n\n")
             
             f.write(f"## 💾 输出文件\n\n")
-            for key, filepath in results.items():
-                if os.path.exists(filepath):
-                    size = os.path.getsize(filepath) / 1024
-                    f.write(f"- `{os.path.basename(filepath)}` ({size:.1f} KB)\n")
+            f.write(f"- `adblock_optimized.txt` ({len(self.optimizer.rules['adblock'])} 条规则)\n")
+            f.write(f"- `hosts_optimized.txt` ({len(self.optimizer.rules['hosts'])} 条规则)\n")
             
             f.write(f"\n## 🚀 使用说明\n\n")
             f.write(f"1. **Adblock规则**: 适用于uBlock Origin、AdGuard等浏览器扩展\n")
             f.write(f"2. **Hosts规则**: 复制到系统hosts文件（需要管理员权限）\n")
-            f.write(f"3. **域名列表**: 用于DNS过滤或防火墙规则\n")
         
         logger.info(f"报告已生成: {report_file}")
 
@@ -627,9 +601,8 @@ def main():
         print("\n" + "="*60)
         print("处理完成！")
         print("="*60)
-        for key, filepath in results.items():
-            if os.path.exists(filepath):
-                print(f"✓ {key}: {filepath}")
+        print(f"✓ Adblock规则: adblock_optimized.txt ({len(processor.optimizer.rules['adblock'])} 条)")
+        print(f"✓ Hosts规则: hosts_optimized.txt ({len(processor.optimizer.rules['hosts'])} 条)")
         
         return 0
         
@@ -641,8 +614,4 @@ def main():
         return 1
 
 if __name__ == "__main__":
-    # 导入正则模块（放在这里避免循环导入）
-    import re
-    from collections import defaultdict
-    
     sys.exit(main())
