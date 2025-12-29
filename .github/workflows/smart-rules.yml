@@ -11,7 +11,7 @@ on:
       - 'config/**'
 
 permissions:
-  contents: write  # 关键：赋予工作流写入仓库内容的权限
+  contents: write
 
 jobs:
   update-rules:
@@ -19,11 +19,13 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # 1. 拉取仓库代码
+      # 1. 拉取仓库代码（关键修改：添加 clean: true）
       - name: 检出仓库代码
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          clean: true    # 关键：每次运行前完全清理工作区，避免缓存问题
 
       # 2. 设置Python环境
       - name: 设置Python环境
@@ -35,34 +37,40 @@ jobs:
       - name: 安装Python依赖
         run: pip install -r requirements.txt
 
-      # 4. 运行核心处理脚本 (在这里生成dist/下的文件)
+      # 4. 运行核心处理脚本
       - name: 运行规则处理脚本
         run: python scripts/smart_rule_processor.py
-        # 脚本执行后，文件就生成了虚拟机的当前目录下的dist/里
 
-      # 5. 检查dist/目录是否有新文件生成 (诊断步骤)
-      - name: 列出生成的文件
+      # 5. 验证生成的文件和时间戳（调试步骤）
+      - name: 验证生成结果
         run: |
-          echo "=== 检查dist目录 ==="
-          ls -la dist/ 2>/dev/null || echo "dist目录不存在"
-          echo "=== 文件行数统计 ==="
-          find dist/ -name "*.txt" -exec wc -l {} \; 2>/dev/null || echo "未找到txt文件"
+          echo "=== 当前系统时间 ==="
+          date
+          echo ""
+          echo "=== 生成的文件列表 ==="
+          ls -la dist/
+          echo ""
+          echo "=== Adblock文件前5行 ==="
+          head -5 dist/adblock_optimized.txt 2>/dev/null || echo "Adblock文件不存在"
+          echo ""
+          echo "=== Hosts文件前5行 ==="
+          head -5 dist/hosts_optimized.txt 2>/dev/null || echo "Hosts文件不存在"
 
-      # 6. 配置Git并提交所有更改 (关键步骤)
+      # 6. 配置Git并提交更改
       - name: 提交生成的规则文件
         run: |
-          # 设置Git用户信息（必须是GitHub Actions bot）
+          # 设置Git用户信息
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 检查是否有文件要提交（重点添加dist/目录）
-          git add dist/ stats/  # 确保添加了dist和stats目录
+          # 检查是否有文件要提交
+          git add dist/
           
-          # 检查状态，方便调试
+          # 检查状态
           echo "=== Git状态 ==="
           git status --porcelain
 
-          # 提交更改
+          # 提交更改（使用当前时间）
           if git diff --staged --quiet; then
             echo "没有检测到文件变更，无需提交。"
           else
@@ -70,3 +78,32 @@ jobs:
             git push
             echo "✅ 规则文件已提交并推送！"
           fi
+
+      # 7. 生成工作流报告
+      - name: 生成总结报告
+        if: always()
+        run: |
+          echo "### 🚀 规则处理报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**运行完成时间**: $(date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "dist/adblock_optimized.txt" ]; then
+            AD_COUNT=$(grep -c '^[^!]' "dist/adblock_optimized.txt" || echo "0")
+            echo "**Adblock规则**: $AD_COUNT 条" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f "dist/hosts_optimized.txt" ]; then
+            HOSTS_COUNT=$(grep -c '^0\.0\.0\.0' "dist/hosts_optimized.txt" || echo "0")
+            echo "**Hosts域名**: $HOSTS_COUNT 个" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**输出文件**: " >> $GITHUB_STEP_SUMMARY
+          find dist -name "*.txt" -type f | while read file; do
+            filename=$(basename "$file")
+            size=$(du -h "$file" | cut -f1)
+            lines=$(wc -l < "$file" | tr -d ' ')
+            echo "- \`$filename\` ($size, $lines 行)" >> $GITHUB_STEP_SUMMARY
+          done
