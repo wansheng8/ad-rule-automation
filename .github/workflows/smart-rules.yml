@@ -1,14 +1,7 @@
 name: 智能广告规则更新
 
 on:
-  schedule:
-    - cron: '0 2 * * *'  # 每天UTC时间2点（北京时间10点）自动运行
-  workflow_dispatch:       # 允许手动触发
-  push:
-    branches: [ main ]
-    paths:
-      - 'scripts/**'
-      - 'config/**'
+  workflow_dispatch:       # 我们先专注手动触发，调试成功后可以恢复定时触发
 
 permissions:
   contents: write
@@ -19,91 +12,155 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # 1. 拉取仓库代码（关键修改：添加 clean: true）
-      - name: 检出仓库代码
+      # 1. 彻底清理并拉取代码（关键修改：增加清除配置）
+      - name: 检出仓库代码 (强制全新环境)
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          clean: true    # 关键：每次运行前完全清理工作区，避免缓存问题
+          clean: true
+          # 以下配置确保彻底清理并获取所有分支和标签
+          ref: ${{ github.ref }}
 
-      # 2. 设置Python环境
+      # 2. 在运行前，首先验证仓库中的脚本内容
+      - name: 验证当前脚本版本
+        run: |
+          echo "=== 验证仓库中脚本的最后修改时间 ==="
+          git log -1 --oneline -- scripts/smart_rule_processor.py
+          echo ""
+          echo "=== 验证脚本中关键时间函数 ==="
+          grep -n "datetime.now()" scripts/smart_rule_processor.py || echo "未找到 datetime.now()"
+          echo ""
+          echo "=== 系统当前时间 (UTC) ==="
+          date -u
+          echo "=== 系统当前时间 (本地) ==="
+          date
+
+      # 3. 设置Python环境
       - name: 设置Python环境
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 3. 安装依赖
+      # 4. 安装依赖（每次全新安装，不使用缓存）
       - name: 安装Python依赖
-        run: pip install -r requirements.txt
-
-      # 4. 运行核心处理脚本
-      - name: 运行规则处理脚本
-        run: python scripts/smart_rule_processor.py
-
-      # 5. 验证生成的文件和时间戳（调试步骤）
-      - name: 验证生成结果
         run: |
-          echo "=== 当前系统时间 ==="
+          python -m pip install --upgrade pip
+          pip install requests pyyaml --no-cache-dir
+
+      # 5. 运行脚本并捕获详细日志
+      - name: 运行规则处理脚本 (详细日志)
+        run: |
+          echo "=== 运行前系统时间 ==="
           date
           echo ""
-          echo "=== 生成的文件列表 ==="
-          ls -la dist/
+          echo "=== 运行脚本，开启调试模式 ==="
+          python scripts/smart_rule_processor.py --verbose 2>&1 | tee /tmp/script_output.log
           echo ""
-          echo "=== Adblock文件前5行 ==="
-          head -5 dist/adblock_optimized.txt 2>/dev/null || echo "Adblock文件不存在"
-          echo ""
-          echo "=== Hosts文件前5行 ==="
-          head -5 dist/hosts_optimized.txt 2>/dev/null || echo "Hosts文件不存在"
+          echo "=== 脚本运行完成，检查返回值 ==="
+          echo "脚本退出代码: $?"
 
-      # 6. 配置Git并提交更改
+      # 6. 深入诊断生成的文件和时间戳
+      - name: 深度诊断 - 验证生成结果
+        run: |
+          echo "=== 诊断时间点 ==="
+          date
+          echo ""
+          
+          echo "=== 检查 dist/ 目录 ==="
+          ls -la dist/ 2>/dev/null || echo "dist 目录不存在！"
+          echo ""
+          
+          if [ -f "dist/adblock_optimized.txt" ]; then
+            echo "=== Adblock 文件详情 ==="
+            echo "文件大小: $(wc -c < dist/adblock_optimized.txt) 字节"
+            echo "行数: $(wc -l < dist/adblock_optimized.txt)"
+            echo ""
+            echo "--- 文件前10行 ---"
+            head -10 dist/adblock_optimized.txt
+            echo ""
+            echo "--- 文件中是否包含时间戳 '2025-12-29'? ---"
+            if grep -q "2025-12-29" dist/adblock_optimized.txt; then
+              echo "❌ 发现旧时间戳 '2025-12-29'"
+              grep "2025-12-29" dist/adblock_optimized.txt
+            else
+              echo "✅ 未发现旧时间戳"
+              grep -E "202[0-9]-[0-9]{2}-[0-9]{2}" dist/adblock_optimized.txt || echo "未找到时间戳格式"
+            fi
+          else
+            echo "❌ Adblock 文件不存在"
+          fi
+          
+          echo ""
+          echo "=== 检查文件系统时间戳 ==="
+          if [ -f "dist/adblock_optimized.txt" ]; then
+            echo "文件最后修改时间:"
+            stat -c %y dist/adblock_optimized.txt 2>/dev/null || ls -la dist/adblock_optimized.txt
+          fi
+
+      # 7. 提交更改（使用当前真实时间）
       - name: 提交生成的规则文件
         run: |
+          # 再次确认当前时间
+          echo "=== 提交步骤开始时间 ==="
+          date
+          echo ""
+          
           # 设置Git用户信息
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # 检查是否有文件要提交
+          
+          # 检查文件状态
+          echo "=== 检查Git状态 ==="
+          git status --short
+          echo ""
+          
+          # 添加文件
           git add dist/
           
-          # 检查状态
-          echo "=== Git状态 ==="
-          git status --porcelain
-
-          # 提交更改（使用当前时间）
+          # 提交（使用当前系统时间）
+          CURRENT_TIME=$(date +'%Y-%m-%d %H:%M:%S')
+          echo "准备提交，提交信息时间: $CURRENT_TIME"
+          
           if git diff --staged --quiet; then
             echo "没有检测到文件变更，无需提交。"
           else
-            git commit -m "🤖 自动更新广告规则 [$(date +'%Y-%m-%d %H:%M:%S')]"
+            git commit -m "🤖 自动更新广告规则 [$CURRENT_TIME]"
+            
+            # 推送前再次验证
+            echo "=== 最后验证提交信息 ==="
+            git log -1 --oneline
+            
             git push
             echo "✅ 规则文件已提交并推送！"
           fi
 
-      # 7. 生成工作流报告
+      # 8. 生成最终报告
       - name: 生成总结报告
         if: always()
         run: |
-          echo "### 🚀 规则处理报告" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**运行完成时间**: $(date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
+          echo "### 🕒 规则处理时间诊断报告" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
+          echo "**工作流执行时间**: $(date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 检查最终文件状态
           if [ -f "dist/adblock_optimized.txt" ]; then
-            AD_COUNT=$(grep -c '^[^!]' "dist/adblock_optimized.txt" || echo "0")
-            echo "**Adblock规则**: $AD_COUNT 条" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          if [ -f "dist/hosts_optimized.txt" ]; then
-            HOSTS_COUNT=$(grep -c '^0\.0\.0\.0' "dist/hosts_optimized.txt" || echo "0")
-            echo "**Hosts域名**: $HOSTS_COUNT 个" >> $GITHUB_STEP_SUMMARY
+            echo "**Adblock文件时间戳检查**: " >> $GITHUB_STEP_SUMMARY
+            FILE_TIME=$(head -3 dist/adblock_optimized.txt | grep -E "202[0-9]-[0-9]{2}-[0-9]{2}" || echo "未找到时间戳")
+            echo "- 文件头中的时间: $FILE_TIME" >> $GITHUB_STEP_SUMMARY
+            
+            if echo "$FILE_TIME" | grep -q "2025-12-29"; then
+              echo "  - ❌ **警告**: 文件包含旧的测试时间戳 (2025-12-29)" >> $GITHUB_STEP_SUMMARY
+              echo "  - 可能原因: 脚本未正确更新或存在缓存" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "  - ✅ 时间戳正常" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "**输出文件**: " >> $GITHUB_STEP_SUMMARY
-          find dist -name "*.txt" -type f | while read file; do
-            filename=$(basename "$file")
-            size=$(du -h "$file" | cut -f1)
-            lines=$(wc -l < "$file" | tr -d ' ')
-            echo "- \`$filename\` ($size, $lines 行)" >> $GITHUB_STEP_SUMMARY
-          done
+          echo "**诊断建议**: " >> $GITHUB_STEP_SUMMARY
+          echo "1. 检查 '验证当前脚本版本' 步骤，确认脚本最后修改时间" >> $GITHUB_STEP_SUMMARY
+          echo "2. 检查 '深度诊断' 步骤中文件是否包含旧时间戳" >> $GITHUB_STEP_SUMMARY
+          echo "3. 如果时间仍不正确，请检查脚本中的 datetime.now() 调用" >> $GITHUB_STEP_SUMMARY
