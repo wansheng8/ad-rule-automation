@@ -1,8 +1,8 @@
 {
   "processing_info": {
-    "start_time": "2025-12-30 04:40:45",
-    "end_time": "2025-12-30 04:40:45",
-    "total_duration_seconds": 0.58,
+    "start_time": "2025-12-30 04:42:41",
+    "end_time": "2025-12-30 04:42:41",
+    "total_duration_seconds": 0.5,
     "update_status": "updated",
     "shanghai_timezone": true
   },
@@ -21,25 +21,25 @@
     "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
       "status": "success",
       "lines": 1020,
-      "time_seconds": 0.09,
+      "time_seconds": 0.06,
       "size_bytes": 27697
     },
     "https://easylist.to/easylist/easylist.txt": {
       "status": "success",
       "lines": 81934,
-      "time_seconds": 0.13,
+      "time_seconds": 0.11,
       "size_bytes": 2095973
     },
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
       "status": "success",
       "lines": 93595,
-      "time_seconds": 0.15,
+      "time_seconds": 0.13,
       "size_bytes": 2574324
     },
     "https://someonewhocares.org/hosts/zero/hosts": {
       "status": "success",
       "lines": 12140,
-      "time_seconds": 0.27,
+      "time_seconds": 0.2,
       "size_bytes": 330689
     }
   },
