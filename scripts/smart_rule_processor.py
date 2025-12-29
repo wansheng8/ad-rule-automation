@@ -148,7 +148,7 @@ class RuleProcessor:
         
         # 处理规则内容
         print(f"\n🔍 分析规则内容...")
-        previous_adblock_count = len(self.adblock_rules)  # 通常是0，除非有缓存
+        previous_adblock_count = len(self.adblock_rules)
         previous_hosts_count = len(self.hosts_entries)
         
         for url, content in contents.items():
@@ -288,7 +288,8 @@ class RuleProcessor:
     def _generate_detailed_stats(self):
         """生成详细统计报告"""
         try:
-            stats_file = f"stats/processing_stats_{get_shanghai_time().strftime('%Y%m%d_%H%M%S')}.json"
+            timestamp = get_shanghai_time().strftime('%Y%m%d_%H%M%S')
+            stats_file = f"stats/processing_stats_{timestamp}.json"
             
             detailed_stats = {
                 "processing_info": {
@@ -316,7 +317,7 @@ class RuleProcessor:
             }
             
             with open(stats_file, 'w', encoding='utf-8') as f:
-                json.dump(detailed_stats, f, indent=2, ensure_ascii=False, ensure_ascii=False)
+                json.dump(detailed_stats, f, indent=2, ensure_ascii=False)
             
             print(f"  📊 统计报告已保存: {stats_file}")
             
@@ -356,7 +357,8 @@ class RuleProcessor:
     def _generate_markdown_report(self, stats_data):
         """生成Markdown格式的简明报告"""
         try:
-            md_file = f"stats/report_{get_shanghai_time().strftime('%Y%m%d_%H%M%S')}.md"
+            timestamp = get_shanghai_time().strftime('%Y%m%d_%H%M%S')
+            md_file = f"stats/report_{timestamp}.md"
             
             with open(md_file, 'w', encoding='utf-8') as f:
                 f.write(f"# 广告规则处理报告\n\n")
