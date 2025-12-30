@@ -11,12 +11,17 @@ on:
 jobs:
   update-rules:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write  # 添加写入权限
+      
     steps:
-      - name: 检出代码
+      - name: 检出代码（配置令牌）
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # 如果是fork的仓库，添加下面这行
+          # persist-credentials: true
           
       - name: 设置Python
         uses: actions/setup-python@v4
@@ -87,7 +92,6 @@ jobs:
             STATS_COUNT=$(find stats/ -type f -name "*.json" -o -name "*.md" 2>/dev/null | wc -l)
             if [ "$STATS_COUNT" -gt 0 ]; then
               echo "✅ stats目录有 $STATS_COUNT 个报告文件"
-              # 显示最新报告的时间
               LATEST_STATS=$(find stats/ -type f -name "*.json" -printf "%T@ %p\n" 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
               if [ -n "$LATEST_STATS" ]; then
                 echo "   最新报告: $(basename "$LATEST_STATS")"
@@ -100,13 +104,16 @@ jobs:
             echo "ℹ️  stats目录未生成"
           fi
           
-      - name: 提交更新
+      - name: 配置Git并推送
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # 设置Git配置
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           # 检查是否有变更
-          if git diff --quiet; then
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
             echo "没有变更需要提交"
             exit 0
           fi
@@ -114,12 +121,34 @@ jobs:
           echo "=== Git变更状态 ==="
           git status --short
           
-          echo "准备提交，时间: $(date '+%Y-%m-%d %H:%M:%S')"
-          git add .
-          git commit -m "🤖 自动更新广告规则 [$(date '+%Y-%m-%d %H:%M:%S')]"
+          echo "=== 具体变更 ==="
+          git diff --stat
           
-      - name: 推送变更
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          # 添加所有变更
+          git add .
+          
+          echo "准备提交，时间: $(date '+%Y-%m-%d %H:%M:%S')"
+          git commit -m "🤖 自动更新广告规则 [$(date '+%Y-%m-%d %H:%M:%S')]" || echo "提交可能失败，继续执行..."
+          
+          # 尝试推送，最多重试3次
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "尝试推送 (第 $((RETRY_COUNT + 1)) 次)..."
+            if git push origin HEAD:main; then
+              echo "✅ 推送成功"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                echo "❌ 推送失败，已达最大重试次数"
+                exit 1
+              fi
+              echo "推送失败，等待 5 秒后重试..."
+              sleep 5
+              
+              # 拉取最新代码并重新尝试合并
+              echo "拉取最新代码..."
+              git pull --rebase origin main || echo "拉取失败，继续尝试推送..."
+            fi
+          done
