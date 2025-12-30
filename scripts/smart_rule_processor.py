@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-智能广告规则处理系统 - 智能去重与优化版
-生成 Adblock.txt, hosts.txt, Domains.txt 三种格式的规则，带智能去重和优化
+智能广告规则处理系统 - 增强优化版 (带规则自查)
+生成 Adblock.txt, hosts.txt, Domains.txt 三种格式的规则，带智能去重、缓存优化和域名连通性检查
 """
 
 import os
@@ -24,6 +24,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Set, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
+from pathlib import Path
 
 try:
     import requests
@@ -47,7 +48,7 @@ def get_time_string() -> str:
     return get_shanghai_time().strftime('%Y-%m-%d %H:%M:%S')
 
 class RuleFetcher:
-    """规则获取器"""
+    """规则获取器 (带缓存优化版)"""
     
     def __init__(self):
         self.session = self._create_session()
@@ -55,41 +56,112 @@ class RuleFetcher:
             'total_sources': 0,
             'successful': 0,
             'failed': 0,
+            'cached': 0,
             'source_details': {}
         }
+        self.cache_dir = Path(Config.CACHE_DIR)
+        self.cache_dir.mkdir(exist_ok=True)
         
     def _create_session(self):
         """创建HTTP会话"""
         session = requests.Session()
         
         retry_strategy = Retry(
-            total=3,
+            total=2,  # 减少重试次数
             backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
         )
         
-        adapter = HTTPAdapter(max_retries=retry_strategy)
+        adapter = HTTPAdapter(
+            max_retries=retry_strategy,
+            pool_connections=10,
+            pool_maxsize=10
+        )
         session.mount("http://", adapter)
         session.mount("https://", adapter)
         
         session.headers.update({
-            'User-Agent': 'AdRuleAutomation/4.0',
+            'User-Agent': Config.get_user_agent(),
             'Accept': 'text/plain, */*',
+            'Accept-Encoding': 'gzip, deflate',
         })
         
         return session
     
+    def _get_cache_path(self, url: str) -> Path:
+        """根据URL生成缓存文件路径"""
+        import hashlib
+        url_hash = hashlib.md5(url.encode()).hexdigest()
+        return self.cache_dir / f"cache_{url_hash}.pkl"
+    
+    def _load_from_cache(self, cache_path: Path) -> Tuple[Optional[str], Optional[int]]:
+        """从缓存加载数据，返回 (content, lines)"""
+        if not Config.CACHE_ENABLED or not cache_path.exists():
+            return None, None
+            
+        cache_age = time.time() - cache_path.stat().st_mtime
+        if cache_age > Config.CACHE_EXPIRE_HOURS * 3600:
+            return None, None  # 缓存过期
+            
+        try:
+            with open(cache_path, 'rb') as f:
+                import pickle
+                cached_data = pickle.load(f)
+                return cached_data['content'], cached_data['lines']
+        except:
+            return None, None
+    
+    def _save_to_cache(self, cache_path: Path, content: str, lines: int):
+        """保存数据到缓存"""
+        if not Config.CACHE_ENABLED:
+            return
+        try:
+            import pickle
+            with open(cache_path, 'wb') as f:
+                pickle.dump({
+                    'content': content,
+                    'lines': lines,
+                    'timestamp': time.time()
+                }, f)
+        except:
+            pass  # 缓存保存失败不影响主流程
+    
     def fetch_url(self, url: str) -> Tuple[bool, Optional[str], int]:
-        """获取单个URL的内容"""
+        """获取单个URL的内容（带缓存）"""
+        cache_path = self._get_cache_path(url)
+        
+        # 1. 尝试从缓存读取
+        cached_content, cached_lines = self._load_from_cache(cache_path)
+        if cached_content is not None:
+            self.stats['cached'] += 1
+            self.stats['successful'] += 1
+            self.stats['source_details'][url] = {
+                'status': 'cached',
+                'lines': cached_lines,
+                'time_seconds': 0,
+                'size_bytes': len(cached_content.encode('utf-8'))
+            }
+            return True, cached_content, cached_lines
+        
+        # 2. 缓存未命中，从网络下载
         try:
             start_time = time.time()
-            timeout = getattr(Config, 'REQUEST_TIMEOUT', 30)
+            timeout = Config.REQUEST_TIMEOUT
+            
+            # 对已知慢速源使用更短的超时
+            slow_domains = ['easylist.to', 'someonewhocares.org']
+            if any(domain in url for domain in slow_domains):
+                timeout = min(timeout, 30)
+            
             response = self.session.get(url, timeout=timeout)
             response.raise_for_status()
             
             content = response.text
-            lines = len(content.split('\n'))
+            lines = content.count('\n') + 1
             elapsed = time.time() - start_time
+            
+            # 3. 保存到缓存
+            self._save_to_cache(cache_path, content, lines)
             
             self.stats['successful'] += 1
             self.stats['source_details'][url] = {
@@ -100,11 +172,19 @@ class RuleFetcher:
             }
             
             return True, content, lines
+            
+        except requests.exceptions.Timeout:
+            self.stats['failed'] += 1
+            self.stats['source_details'][url] = {
+                'status': 'timeout',
+                'error': f'请求超时 ({timeout}s)'
+            }
+            return False, None, 0
         except Exception as e:
             self.stats['failed'] += 1
             self.stats['source_details'][url] = {
                 'status': 'failed',
-                'error': str(e)
+                'error': str(e)[:100]  # 截断错误信息
             }
             return False, None, 0
 
@@ -118,6 +198,7 @@ class RuleOptimizer:
             return set()
         
         print(f"  正在对 {len(rules)} 条Adblock规则进行智能去重...")
+        start_time = time.time()
         
         # 1. 基本去重（基于字符串完全匹配）
         unique_rules = set(rules)
@@ -158,7 +239,8 @@ class RuleOptimizer:
             else:
                 optimized_rules.add(rule)
         
-        print(f"    智能去重后: {len(optimized_rules)} 条 (移除了 {removed_count} 条冗余规则)")
+        elapsed = time.time() - start_time
+        print(f"    智能去重后: {len(optimized_rules)} 条 (移除了 {removed_count} 条冗余规则, 耗时: {elapsed:.2f}s)")
         return optimized_rules
     
     @staticmethod
@@ -209,6 +291,7 @@ class RuleOptimizer:
             return set()
         
         print(f"  正在对 {len(entries)} 个Hosts条目进行去重...")
+        start_time = time.time()
         
         # 基于域名的去重：每个域名只保留一个条目（优先0.0.0.0）
         domain_to_entry = {}
@@ -228,7 +311,8 @@ class RuleOptimizer:
                     domain_to_entry[domain] = entry
         
         result = set(domain_to_entry.values())
-        print(f"    Hosts去重后: {len(result)} 个 (移除了 {duplicates_removed} 个重复域名)")
+        elapsed = time.time() - start_time
+        print(f"    Hosts去重后: {len(result)} 个 (移除了 {duplicates_removed} 个重复域名, 耗时: {elapsed:.2f}s)")
         return result
     
     @staticmethod
@@ -238,6 +322,7 @@ class RuleOptimizer:
             return set()
         
         print(f"  正在对 {len(domains)} 个域名进行去重...")
+        start_time = time.time()
         
         # 基本去重
         unique_domains = set(domains)
@@ -258,7 +343,8 @@ class RuleOptimizer:
             if not is_subdomain:
                 optimized_domains.add(domain)
         
-        print(f"    域名去重后: {len(optimized_domains)} 个 (移除了 {removed_subdomains} 个子域名)")
+        elapsed = time.time() - start_time
+        print(f"    域名去重后: {len(optimized_domains)} 个 (移除了 {removed_subdomains} 个子域名, 耗时: {elapsed:.2f}s)")
         return optimized_domains
 
 class RuleProcessor:
@@ -310,9 +396,10 @@ class RuleProcessor:
     def process_rules(self) -> bool:
         """处理所有规则"""
         print("=" * 60)
-        print("🔄 开始处理广告规则（智能去重版）")
+        print("🚀 开始处理广告规则（增强优化版）")
         print(f"📅 当前上海时间: {get_time_string()}")
         print(f"📊 规则源总数: {len(self.rule_sources)} 个")
+        print(f"⚙️  配置参数: MAX_WORKERS={Config.MAX_WORKERS}, CACHE_ENABLED={Config.CACHE_ENABLED}")
         print("=" * 60)
         
         self.stats['start_time'] = get_time_string()
@@ -322,7 +409,7 @@ class RuleProcessor:
         self.fetcher.stats['total_sources'] = len(self.rule_sources)
         
         contents = {}
-        max_workers = getattr(Config, 'MAX_WORKERS', 15)
+        max_workers = Config.MAX_WORKERS
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_url = {executor.submit(self.fetcher.fetch_url, url): url 
@@ -338,10 +425,16 @@ class RuleProcessor:
                 
                 if success and content:
                     contents[url] = content
-                    print(f"  [{processed}/{total}] ✅ 获取成功: {url} ({lines} 行)")
+                    status = self.fetcher.stats['source_details'][url].get('status', 'unknown')
+                    cache_info = " [缓存]" if status == 'cached' else ""
+                    print(f"  [{processed}/{total}] ✅ 获取成功{cache_info}: {url} ({lines} 行)")
                     self.stats['rules_by_source'][url] = lines
                 else:
-                    print(f"  [{processed}/{total}] ❌ 获取失败: {url}")
+                    error = self.fetcher.stats['source_details'][url].get('error', '未知错误')
+                    print(f"  [{processed}/{total}] ❌ 获取失败: {url} ({error})")
+        
+        print(f"\n📊 下载统计: {self.fetcher.stats['successful']}成功 "
+              f"({self.fetcher.stats['cached']}缓存) / {self.fetcher.stats['failed']}失败")
         
         print(f"\n🔍 分析规则内容...")
         previous_counts = {
@@ -350,8 +443,11 @@ class RuleProcessor:
             'domains': len(self.domains_set)
         }
         
+        parse_start = time.time()
         for url, content in contents.items():
             self._parse_content(content, url)
+        parse_time = time.time() - parse_start
+        print(f"  解析完成，耗时: {parse_time:.2f}s")
         
         print(f"\n🧹 开始智能去重和优化...")
         
@@ -402,15 +498,16 @@ class RuleProcessor:
         print("=" * 60)
         if success:
             status_emoji = "🔄" if self.stats['update_status'] == 'updated' else "⏸️"
-            print(f"{status_emoji} 处理完成！状态: {self.stats['update_status']}")
+            print(f"{status_emoji} 规则处理完成！状态: {self.stats['update_status']}")
             print(f"⏱️  总耗时: {elapsed_time:.2f}秒")
-            print(f"📊 Adblock规则: {current_counts['adblock']} 条")
-            print(f"📊 Hosts规则: {current_counts['hosts']} 个")
-            print(f"📊 纯域名: {current_counts['domains']} 个")
-            print(f"📈 去重统计: {self.stats['duplicates_removed']['adblock']}条Adblock, "
-                  f"{self.stats['duplicates_removed']['hosts']}个Hosts, "
-                  f"{self.stats['duplicates_removed']['domains']}个域名")
-            print(f"📈 规则源: {self.fetcher.stats['successful']}成功/{self.fetcher.stats['failed']}失败")
+            print(f"📊 Adblock规则: {current_counts['adblock']:,} 条")
+            print(f"📊 Hosts规则: {current_counts['hosts']:,} 个")
+            print(f"📊 纯域名: {current_counts['domains']:,} 个")
+            print(f"📈 去重统计: {self.stats['duplicates_removed']['adblock']:,}条Adblock, "
+                  f"{self.stats['duplicates_removed']['hosts']:,}个Hosts, "
+                  f"{self.stats['duplicates_removed']['domains']:,}个域名")
+            print(f"📈 下载统计: {self.fetcher.stats['successful']:,}成功 "
+                  f"({self.fetcher.stats['cached']:,}缓存) / {self.fetcher.stats['failed']:,}失败")
         else:
             print(f"❌ 处理失败")
         
@@ -470,72 +567,80 @@ class RuleProcessor:
             os.makedirs("stats", exist_ok=True)
             
             current_time = get_time_string()
+            total_rules = len(self.adblock_rules) + len(self.hosts_entries) + len(self.domains_set)
             
             # 1. 保存Adblock规则
             adblock_path = "dist/Adblock.txt"
             with open(adblock_path, 'w', encoding='utf-8') as f:
-                f.write(f"""! Adblock-style 规则（智能去重优化版）
+                f.write(f"""! Adblock-style 规则（增强优化版）
 ! 适用于 uBlock Origin, AdGuard, Adblock Plus 等浏览器插件
 ! 最后更新: {current_time}
-! 规则总数: {len(self.adblock_rules)} 条
-! 去重移除: {self.stats['duplicates_removed']['adblock']} 条重复规则
+! 规则总数: {len(self.adblock_rules):,} 条
+! 去重移除: {self.stats['duplicates_removed']['adblock']:,} 条重复规则
 ! 更新状态: {self.stats['update_status']}
-! GitHub: https://github.com/wansheng8/ad-rule-automation
+! GitHub: https://github.com/{Config.REPO_OWNER}/{Config.REPO_NAME}
+! 缓存系统: {'启用' if Config.CACHE_ENABLED else '禁用'}
 !
 
 """)
-                for rule in sorted(self.adblock_rules):
-                    f.write(f"{rule}\n")
+                # 批量写入以提高性能
+                batch_size = 5000
+                rules_list = sorted(self.adblock_rules)
+                for i in range(0, len(rules_list), batch_size):
+                    batch = rules_list[i:i+batch_size]
+                    f.write('\n'.join(batch) + '\n')
             
-            # 检查文件大小
             file_size = os.path.getsize(adblock_path)
             file_size_mb = file_size / (1024 * 1024)
-            print(f"  ✅ 保存Adblock规则: {len(self.adblock_rules)} 条 -> dist/Adblock.txt ({file_size_mb:.2f} MB)")
-            
-            if file_size_mb > 90:
-                print(f"  ⚠️  警告: Adblock.txt 文件较大 ({file_size_mb:.2f} MB)")
-                print(f"  💡 建议: 如需进一步减小文件大小，可考虑:")
-                print(f"     1. 减少规则源数量")
-                print(f"     2. 启用规则压缩（可联系开发者启用）")
+            print(f"  ✅ 保存Adblock规则: {len(self.adblock_rules):,} 条 -> dist/Adblock.txt ({file_size_mb:.2f} MB)")
             
             # 2. 保存Hosts规则
             hosts_path = "dist/hosts.txt"
             with open(hosts_path, 'w', encoding='utf-8') as f:
-                f.write(f"""# /etc/hosts 语法规则（智能去重优化版）
+                f.write(f"""# /etc/hosts 语法规则（增强优化版）
 # 适用于系统hosts文件、Pi-hole、AdGuard Home等
 # 最后更新: {current_time}
-# 规则总数: {len(self.hosts_entries)} 个
-# 去重移除: {self.stats['duplicates_removed']['hosts']} 个重复域名
+# 规则总数: {len(self.hosts_entries):,} 个
+# 去重移除: {self.stats['duplicates_removed']['hosts']:,} 个重复域名
 # 更新状态: {self.stats['update_status']}
-# GitHub: https://github.com/wansheng8/ad-rule-automation
+# GitHub: https://github.com/{Config.REPO_OWNER}/{Config.REPO_NAME}
 #
 
 """)
                 sorted_hosts = sorted(self.hosts_entries)
                 zero_hosts = [h for h in sorted_hosts if h.startswith('0.0.0.0')]
                 local_hosts = [h for h in sorted_hosts if h.startswith('127.0.0.1')]
-                for rule in zero_hosts + local_hosts:
-                    f.write(f"{rule}\n")
+                
+                # 批量写入
+                for i in range(0, len(zero_hosts), batch_size):
+                    batch = zero_hosts[i:i+batch_size]
+                    f.write('\n'.join(batch) + '\n')
+                
+                if local_hosts:
+                    f.write('\n')
+                    for i in range(0, len(local_hosts), batch_size):
+                        batch = local_hosts[i:i+batch_size]
+                        f.write('\n'.join(batch) + '\n')
             
-            print(f"  ✅ 保存Hosts规则: {len(self.hosts_entries)} 个 -> dist/hosts.txt")
+            print(f"  ✅ 保存Hosts规则: {len(self.hosts_entries):,} 个 -> dist/hosts.txt")
             
             # 3. 保存纯域名列表
             domains_path = "dist/Domains.txt"
             with open(domains_path, 'w', encoding='utf-8') as f:
-                f.write(f"""# 纯域名列表（智能去重优化版）
+                f.write(f"""# 纯域名列表（增强优化版）
 # 适用于DNS过滤、防火墙规则等
 # 最后更新: {current_time}
-# 域名总数: {len(self.domains_set)} 个
-# 去重移除: {self.stats['duplicates_removed']['domains']} 个重复域名
+# 域名总数: {len(self.domains_set):,} 个
+# 去重移除: {self.stats['duplicates_removed']['domains']:,} 个重复域名
 # 更新状态: {self.stats['update_status']}
-# GitHub: https://github.com/wansheng8/ad-rule-automation
+# GitHub: https://github.com/{Config.REPO_OWNER}/{Config.REPO_NAME}
 #
 
 """)
                 for domain in sorted(self.domains_set):
                     f.write(f"{domain}\n")
             
-            print(f"  ✅ 保存纯域名列表: {len(self.domains_set)} 个 -> dist/Domains.txt")
+            print(f"  ✅ 保存纯域名列表: {len(self.domains_set):,} 个 -> dist/Domains.txt")
             
             return True
             
@@ -566,12 +671,23 @@ class RuleProcessor:
                     "total_processed": self.stats['rules_processed']
                 },
                 "duplicates_removed": self.stats['duplicates_removed'],
-                "sources_summary": self.fetcher.stats,
+                "download_stats": {
+                    "successful": self.fetcher.stats['successful'],
+                    "cached": self.fetcher.stats['cached'],
+                    "failed": self.fetcher.stats['failed'],
+                    "source_details": self.fetcher.stats['source_details']
+                },
                 "rules_by_source": self.stats['rules_by_source'],
                 "output_files": {
                     "adblock": "dist/Adblock.txt",
                     "hosts": "dist/hosts.txt",
                     "domains": "dist/Domains.txt"
+                },
+                "system_config": {
+                    "max_workers": Config.MAX_WORKERS,
+                    "request_timeout": Config.REQUEST_TIMEOUT,
+                    "cache_enabled": Config.CACHE_ENABLED,
+                    "cache_expire_hours": Config.CACHE_EXPIRE_HOURS
                 }
             }
             
@@ -591,25 +707,34 @@ class RuleProcessor:
         try:
             md_file = f"stats/report_{timestamp}.md"
             with open(md_file, 'w', encoding='utf-8') as f:
-                f.write(f"# 广告规则处理报告（智能去重版）\n\n")
+                f.write(f"# 广告规则处理报告（增强优化版）\n\n")
                 f.write(f"**生成时间**: {stats_data['processing_info']['end_time']}\n")
                 f.write(f"**状态**: {stats_data['processing_info']['update_status']}\n")
                 f.write(f"**输出文件**: [Adblock.txt](dist/Adblock.txt), [hosts.txt](dist/hosts.txt), [Domains.txt](dist/Domains.txt)\n\n")
                 
                 f.write(f"## 处理概览\n\n")
                 f.write(f"- **总耗时**: {stats_data['processing_info']['total_duration_seconds']}秒\n")
-                f.write(f"- **规则源**: {stats_data['sources_summary']['successful']}成功/{stats_data['sources_summary']['failed']}失败\n\n")
+                f.write(f"- **规则源**: {stats_data['download_stats']['successful']}成功")
+                if stats_data['download_stats']['cached'] > 0:
+                    f.write(f" ({stats_data['download_stats']['cached']}缓存)")
+                f.write(f" / {stats_data['download_stats']['failed']}失败\n\n")
                 
                 f.write(f"## 规则统计（去重后）\n\n")
-                f.write(f"- **Adblock规则**: {stats_data['rules_summary']['adblock_rules']}条\n")
-                f.write(f"- **Hosts规则**: {stats_data['rules_summary']['hosts_entries']}个\n")
-                f.write(f"- **纯域名**: {stats_data['rules_summary']['domains']}个\n")
-                f.write(f"- **总计**: {stats_data['rules_summary']['total_processed']}条规则\n\n")
+                f.write(f"- **Adblock规则**: {stats_data['rules_summary']['adblock_rules']:,}条\n")
+                f.write(f"- **Hosts规则**: {stats_data['rules_summary']['hosts_entries']:,}个\n")
+                f.write(f"- **纯域名**: {stats_data['rules_summary']['domains']:,}个\n")
+                f.write(f"- **总计**: {stats_data['rules_summary']['total_processed']:,}条规则\n\n")
                 
                 f.write(f"## 去重效果\n\n")
-                f.write(f"- **移除的Adblock重复规则**: {stats_data['duplicates_removed']['adblock']}条\n")
-                f.write(f"- **移除的Hosts重复域名**: {stats_data['duplicates_removed']['hosts']}个\n")
-                f.write(f"- **移除的域名重复**: {stats_data['duplicates_removed']['domains']}个\n")
+                f.write(f"- **移除的Adblock重复规则**: {stats_data['duplicates_removed']['adblock']:,}条\n")
+                f.write(f"- **移除的Hosts重复域名**: {stats_data['duplicates_removed']['hosts']:,}个\n")
+                f.write(f"- **移除的域名重复**: {stats_data['duplicates_removed']['domains']:,}个\n\n")
+                
+                f.write(f"## 系统配置\n\n")
+                f.write(f"- **最大并发数**: {stats_data['system_config']['max_workers']}\n")
+                f.write(f"- **请求超时**: {stats_data['system_config']['request_timeout']}秒\n")
+                f.write(f"- **缓存启用**: {stats_data['system_config']['cache_enabled']}\n")
+                f.write(f"- **缓存过期**: {stats_data['system_config']['cache_expire_hours']}小时\n")
             
             print(f"  📋 Markdown报告已保存: {md_file}")
         except Exception as e:
@@ -644,10 +769,43 @@ def verify_configuration():
         traceback.print_exc()
         return False
 
+def run_rule_check():
+    """运行规则自查功能"""
+    if not Config.RULE_CHECK_ENABLED:
+        print("⚠️  规则自查功能已禁用")
+        return True
+    
+    print("\n" + "=" * 60)
+    print("🔍 启动规则自查（域名连通性检查）")
+    print("=" * 60)
+    
+    try:
+        # 动态导入规则检查器
+        from rule_checker import RuleChecker
+        checker = RuleChecker()
+        success = checker.run_checks()
+        
+        if success:
+            print("✅ 规则自查完成")
+        else:
+            print("⚠️  规则自查发现问题")
+        
+        return success
+        
+    except ImportError as e:
+        print(f"⚠️  规则自查模块导入失败: {e}")
+        print("💡 请确保 scripts/rule_checker.py 文件存在")
+        return False
+    except Exception as e:
+        print(f"⚠️  规则自查执行失败: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 def main():
     """主函数"""
     print("=" * 60)
-    print("🤖 智能广告规则自动化处理系统 (智能去重版)")
+    print("🤖 智能广告规则自动化处理系统 (增强优化版)")
     print("=" * 60)
     
     if not verify_configuration():
@@ -657,8 +815,17 @@ def main():
     processor = RuleProcessor()
     
     try:
+        # 处理规则
         success = processor.process_rules()
+        
+        # 运行规则自查
+        if success and Config.RULE_CHECK_ENABLED:
+            check_success = run_rule_check()
+            if not check_success:
+                print("⚠️  规则自查发现潜在问题，但规则处理已完成")
+        
         return 0 if success else 1
+        
     except KeyboardInterrupt:
         print("\n\n⚠️  用户中断处理")
         return 130
