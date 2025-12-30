@@ -12,7 +12,7 @@ jobs:
   update-rules:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 添加写入权限
+      contents: write
       
     steps:
       - name: 检出代码（配置令牌）
@@ -20,8 +20,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          # 如果是fork的仓库，添加下面这行
-          # persist-credentials: true
           
       - name: 设置Python
         uses: actions/setup-python@v4
@@ -36,73 +34,141 @@ jobs:
       - name: 运行规则处理脚本
         run: python scripts/smart_rule_processor.py
         
-      - name: 验证生成的文件
+      - name: 自动验证生成的文件
         run: |
-          echo "=== 验证生成的文件 ==="
+          echo "=== 自动验证生成的文件 ==="
           
-          # 检查dist目录
-          if [ -d "dist" ]; then
-            echo "📁 dist目录文件列表:"
-            ls -la dist/
-            echo ""
-            
-            # 检查 Adblock.txt
-            if [ -f "dist/Adblock.txt" ]; then
-              echo "✅ Adblock文件生成成功"
-              echo "   文件大小: $(wc -c < dist/Adblock.txt | numfmt --to=iec)字节"
-              echo "   文件行数: $(wc -l < dist/Adblock.txt)行"
-              echo "   最后更新: $(head -5 dist/Adblock.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo '未找到')"
-            else
-              echo "❌ Adblock.txt 文件未生成"
-            fi
-            
-            # 检查 hosts.txt
-            if [ -f "dist/hosts.txt" ]; then
-              echo ""
-              echo "✅ Hosts文件生成成功"
-              echo "   文件大小: $(wc -c < dist/hosts.txt | numfmt --to=iec)字节"
-              echo "   文件行数: $(wc -l < dist/hosts.txt)行"
-              echo "   0.0.0.0格式: $(grep -c '^0\.0\.0\.0' dist/hosts.txt 2>/dev/null || echo '0')个"
-              echo "   127.0.0.1格式: $(grep -c '^127\.0\.0\.1' dist/hosts.txt 2>/dev/null || echo '0')个"
-            else
-              echo "❌ hosts.txt 文件未生成"
-            fi
-            
-            # 检查 Domains.txt
-            if [ -f "dist/Domains.txt" ]; then
-              echo ""
-              echo "✅ Domains文件生成成功"
-              echo "   文件大小: $(wc -c < dist/Domains.txt | numfmt --to=iec)字节"
-              echo "   文件行数: $(wc -l < dist/Domains.txt)行"
-              echo "   域名数量: $(grep -c '^[^#]' dist/Domains.txt 2>/dev/null || echo '0')个"
-            else
-              echo "❌ Domains.txt 文件未生成"
-            fi
-          else
+          # 检查dist目录是否存在
+          if [ ! -d "dist" ]; then
             echo "❌ dist目录未生成"
+            exit 1
           fi
           
+          echo "📁 dist目录文件列表:"
+          ls -la dist/
           echo ""
+          
+          # 查找所有.txt文件
+          TXT_FILES=$(find dist/ -name "*.txt" -type f)
+          
+          if [ -z "$TXT_FILES" ]; then
+            echo "❌ 未找到任何.txt文件"
+            exit 1
+          fi
+          
+          echo "📊 发现 $(echo "$TXT_FILES" | wc -l) 个.txt文件"
+          echo ""
+          
+          # 分析每个文件
+          for FILE in $TXT_FILES; do
+            FILENAME=$(basename "$FILE")
+            echo "🔍 分析: $FILENAME"
+            
+            # 获取文件基本信息
+            FILE_SIZE=$(wc -c < "$FILE" | numfmt --to=iec)
+            FILE_LINES=$(wc -l < "$FILE")
+            
+            # 采样分析文件内容类型
+            SAMPLE=$(head -20 "$FILE")
+            
+            # 自动识别文件类型
+            FILE_TYPE="未知"
+            if echo "$SAMPLE" | grep -q "Adblock-style\|uBlock Origin\|AdGuard"; then
+              FILE_TYPE="Adblock规则"
+              RULE_COUNT=$(grep -c '^[^!#]' "$FILE" 2>/dev/null || echo "0")
+              echo "   📌 类型: $FILE_TYPE"
+              echo "   📏 大小: $FILE_SIZE"
+              echo "   📄 行数: $FILE_LINES"
+              echo "   🎯 规则数: $RULE_COUNT"
+              
+            elif echo "$SAMPLE" | grep -q "^0\.0\.0\.0\|^127\.0\.0\.1\|/etc/hosts"; then
+              FILE_TYPE="Hosts规则"
+              IP_COUNT=$(grep -c '^0\.0\.0\.0' "$FILE" 2>/dev/null || echo "0")
+              LOCAL_COUNT=$(grep -c '^127\.0\.0\.1' "$FILE" 2>/dev/null || echo "0")
+              echo "   📌 类型: $FILE_TYPE"
+              echo "   📏 大小: $FILE_SIZE"
+              echo "   📄 行数: $FILE_LINES"
+              echo "   🔢 0.0.0.0: $IP_COUNT 个"
+              echo "   🔢 127.0.0.1: $LOCAL_COUNT 个"
+              
+            elif echo "$SAMPLE" | grep -q "纯域名\|DNS过滤\|域名列表"; then
+              FILE_TYPE="域名列表"
+              DOMAIN_COUNT=$(grep -c '^[^#]' "$FILE" 2>/dev/null || echo "0")
+              echo "   📌 类型: $FILE_TYPE"
+              echo "   📏 大小: $FILE_SIZE"
+              echo "   📄 行数: $FILE_LINES"
+              echo "   🌐 域名数: $DOMAIN_COUNT"
+              
+            else
+              # 基于内容特征推断类型
+              if echo "$SAMPLE" | grep -q "^||.*\^\|##\|^/.*/$"; then
+                FILE_TYPE="Adblock规则(推断)"
+                RULE_COUNT=$(grep -c '^[^!#]' "$FILE" 2>/dev/null || echo "0")
+                echo "   📌 类型: $FILE_TYPE"
+                echo "   📏 大小: $FILE_SIZE"
+                echo "   📄 行数: $FILE_LINES"
+                echo "   🎯 规则数: $RULE_COUNT"
+                
+              elif echo "$SAMPLE" | grep -q "^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+"; then
+                FILE_TYPE="Hosts规则(推断)"
+                IP_COUNT=$(grep -c '^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+' "$FILE" 2>/dev/null || echo "0")
+                echo "   📌 类型: $FILE_TYPE"
+                echo "   📏 大小: $FILE_SIZE"
+                echo "   📄 行数: $FILE_LINES"
+                echo "   🔢 IP条目: $IP_COUNT 个"
+                
+              else
+                # 默认认为是域名列表
+                FILE_TYPE="域名列表(推断)"
+                DOMAIN_COUNT=$(grep -c '^[a-zA-Z0-9]' "$FILE" 2>/dev/null || echo "0")
+                echo "   📌 类型: $FILE_TYPE"
+                echo "   📏 大小: $FILE_SIZE"
+                echo "   📄 行数: $FILE_LINES"
+                echo "   🌐 有效行: $DOMAIN_COUNT"
+              fi
+            fi
+            
+            # 检查文件头中的更新时间
+            UPDATE_TIME=$(head -5 "$FILE" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1)
+            if [ -n "$UPDATE_TIME" ]; then
+              echo "   🕐 最后更新: $UPDATE_TIME"
+            fi
+            
+            echo ""
+          done
+          
           echo "=== 检查stats目录 ==="
           if [ -d "stats" ]; then
             echo "📁 stats目录文件列表:"
             ls -la stats/
             echo ""
             
-            STATS_COUNT=$(find stats/ -type f -name "*.json" -o -name "*.md" 2>/dev/null | wc -l)
-            if [ "$STATS_COUNT" -gt 0 ]; then
-              echo "✅ stats目录有 $STATS_COUNT 个报告文件"
+            STATS_FILES=$(find stats/ -name "*.json" -o -name "*.md" 2>/dev/null | wc -l)
+            if [ "$STATS_FILES" -gt 0 ]; then
+              echo "✅ stats目录有 $STATS_FILES 个报告文件"
               LATEST_STATS=$(find stats/ -type f -name "*.json" -printf "%T@ %p\n" 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
               if [ -n "$LATEST_STATS" ]; then
                 echo "   最新报告: $(basename "$LATEST_STATS")"
                 echo "   报告大小: $(wc -c < "$LATEST_STATS" | numfmt --to=iec)字节"
+                
+                # 从JSON报告中提取关键信息
+                if command -v jq >/dev/null 2>&1; then
+                  echo "   关键统计:"
+                  jq -r '.rules_summary | "     - Adblock规则: \(.adblock_rules)条\n     - Hosts规则: \(.hosts_entries)个\n     - 域名: \(.domains)个"' "$LATEST_STATS" 2>/dev/null || true
+                fi
               fi
             else
-              echo "⚠️  stats目录为空，脚本可能未生成报告"
+              echo "⚠️  stats目录为空"
             fi
           else
             echo "ℹ️  stats目录未生成"
           fi
+          
+          echo ""
+          echo "=== 整体验证结果 ==="
+          echo "✅ 自动化验证完成"
+          echo "   发现的规则文件: $(echo "$TXT_FILES" | wc -l) 个"
+          echo "   总文件大小: $(du -sh dist/ | cut -f1)"
           
       - name: 配置Git并推送
         env:
@@ -121,16 +187,13 @@ jobs:
           echo "=== Git变更状态 ==="
           git status --short
           
-          echo "=== 具体变更 ==="
-          git diff --stat
-          
           # 添加所有变更
           git add .
           
           echo "准备提交，时间: $(date '+%Y-%m-%d %H:%M:%S')"
           git commit -m "🤖 自动更新广告规则 [$(date '+%Y-%m-%d %H:%M:%S')]" || echo "提交可能失败，继续执行..."
           
-          # 尝试推送，最多重试3次
+          # 推送变更
           MAX_RETRIES=3
           RETRY_COUNT=0
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -146,9 +209,6 @@ jobs:
               fi
               echo "推送失败，等待 5 秒后重试..."
               sleep 5
-              
-              # 拉取最新代码并重新尝试合并
-              echo "拉取最新代码..."
               git pull --rebase origin main || echo "拉取失败，继续尝试推送..."
             fi
           done
