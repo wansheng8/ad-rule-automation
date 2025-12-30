@@ -10,9 +10,11 @@ import re
 import time
 import json
 import signal
+import pickle
+import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Set, Optional, Tuple, Any
-from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 from pathlib import Path
 
@@ -54,11 +56,18 @@ class UltraFastRuleFetcher:
     """极速规则获取器"""
     
     def __init__(self):
-        import requests
-        from requests.adapters import HTTPAdapter
-        from urllib3.util.retry import Retry
-        
-        self.requests = requests
+        try:
+            import requests
+            from requests.adapters import HTTPAdapter
+            from urllib3.util.retry import Retry
+            self.requests = requests
+            self.HTTPAdapter = HTTPAdapter
+            self.Retry = Retry
+        except ImportError as e:
+            print(f"❌ 导入requests失败: {e}")
+            print("💡 请运行: pip install requests")
+            sys.exit(1)
+            
         self.session = self._create_session()
         self.stats = {
             'total': 0,
@@ -73,8 +82,8 @@ class UltraFastRuleFetcher:
     def _create_session(self):
         """创建超快速会话"""
         session = self.requests.Session()
-        retry = Retry(total=1, backoff_factor=0.5)
-        adapter = HTTPAdapter(
+        retry = self.Retry(total=1, backoff_factor=0.5)
+        adapter = self.HTTPAdapter(
             max_retries=retry,
             pool_connections=5,
             pool_maxsize=5
@@ -92,7 +101,6 @@ class UltraFastRuleFetcher:
         return session
     
     def _get_cache_key(self, url: str) -> Path:
-        import hashlib
         return self.cache_dir / f"cache_{hashlib.md5(url.encode()).hexdigest()}.txt"
     
     def fetch_with_cache(self, url: str) -> Tuple[bool, Optional[str], int]:
