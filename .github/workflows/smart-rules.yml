@@ -1,102 +1,37 @@
-name: 智能广告规则更新
-
+name: 智能广告规则自动更新
 on:
   schedule:
     - cron: '0 2 * * *'  # 每天UTC时间2点（北京时间10点）自动运行
-  workflow_dispatch:       # 允许手动触发
   push:
-    branches: [ main ]
     paths:
-      - 'scripts/**'
       - 'config/**'
-
-permissions:
-  contents: write
+      - 'scripts/**'
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   update-rules:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    
     steps:
-      - name: 检出仓库代码
+      - name: 检出代码
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          clean: true
-
-      - name: ⏰ 设置上海时区并同步时间
-        run: |
-          echo "=== 设置时区为上海 ==="
-          sudo timedatectl set-timezone Asia/Shanghai 2>/dev/null || sudo cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-          echo "Asia/Shanghai" | sudo tee /etc/timezone > /dev/null
           
-          echo "=== 同步网络时间 ==="
-          if command -v ntpdate &> /dev/null || sudo apt-get update && sudo apt-get install -y ntpdate 2>/dev/null; then
-            sudo timeout 10 ntpdate -s -u ntp.aliyun.com 2>/dev/null || true
-          fi
-          
-          echo "=== 最终时间验证 ==="
-          echo "上海时间: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-          echo "时间戳: $(date +%s)"
-
-      - name: 设置Python环境
-        uses: actions/setup-python@v5
+      - name: 设置Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - name: 安装Python依赖
-        run: pip install -r requirements.txt
-
-      - name: 清理之前生成的文件
+          
+      - name: 安装依赖
         run: |
-          echo "=== 开始清理之前生成的文件 ==="
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
           
-          # 清理dist目录中的规则文件
-          if [ -d "dist" ]; then
-            echo "清理dist目录中的文件..."
-            find dist/ -type f -name "*.txt" -delete
-            find dist/ -type f -name "*.json" -delete
-            find dist/ -type f -name "*.log" -delete
-            echo "✅ dist目录清理完成"
-          else
-            echo "ℹ️  dist目录不存在，跳过清理"
-          fi
-          
-          # 清理stats目录中的报告文件
-          if [ -d "stats" ]; then
-            echo "清理stats目录中的报告文件..."
-            find stats/ -type f -name "*.json" -delete
-            find stats/ -type f -name "*.md" -delete
-            find stats/ -type f -name "*.log" -delete
-            find stats/ -type f -name "*.txt" -delete
-            echo "✅ stats目录清理完成"
-          else
-            echo "ℹ️  stats目录不存在，跳过清理"
-          fi
-          
-          # 检查清理结果
-          echo ""
-          echo "=== 清理后目录状态 ==="
-          echo "dist目录内容:"
-          ls -la dist/ 2>/dev/null || echo "  (目录不存在或为空)"
-          echo ""
-          echo "stats目录内容:"
-          ls -la stats/ 2>/dev/null || echo "  (目录不存在或为空)"
-          
-          echo ""
-          echo "🎯 文件清理完成，准备全新生成"
-
       - name: 运行规则处理脚本
-        run: |
-          echo "=== 开始运行脚本 ==="
-          date
-          python scripts/smart_rule_processor.py
-          echo "=== 脚本运行完成 ==="
-          date
-
-      - name: 验证生成结果
+        run: python scripts/smart_rule_processor.py
+        
+      - name: 验证生成的文件
         run: |
           echo "=== 验证生成的文件 ==="
           
@@ -106,21 +41,37 @@ jobs:
             ls -la dist/
             echo ""
             
-            if [ -f "dist/adblock_optimized.txt" ]; then
+            # 检查 Adblock.txt
+            if [ -f "dist/Adblock.txt" ]; then
               echo "✅ Adblock文件生成成功"
-              echo "   文件头时间: $(head -3 dist/adblock_optimized.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo '未找到')"
-              echo "   规则数量: $(grep -c '^[^!]' dist/adblock_optimized.txt 2>/dev/null || echo '0')"
+              echo "   文件大小: $(wc -c < dist/Adblock.txt | numfmt --to=iec)字节"
+              echo "   文件行数: $(wc -l < dist/Adblock.txt)行"
+              echo "   最后更新: $(head -5 dist/Adblock.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo '未找到')"
             else
-              echo "❌ Adblock文件未生成"
+              echo "❌ Adblock.txt 文件未生成"
             fi
             
-            if [ -f "dist/hosts_optimized.txt" ]; then
+            # 检查 hosts.txt
+            if [ -f "dist/hosts.txt" ]; then
               echo ""
               echo "✅ Hosts文件生成成功"
-              echo "   文件头时间: $(head -3 dist/hosts_optimized.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo '未找到')"
-              echo "   域名数量: $(grep -c '^0\.0\.0\.0' dist/hosts_optimized.txt 2>/dev/null || echo '0')"
+              echo "   文件大小: $(wc -c < dist/hosts.txt | numfmt --to=iec)字节"
+              echo "   文件行数: $(wc -l < dist/hosts.txt)行"
+              echo "   0.0.0.0格式: $(grep -c '^0\.0\.0\.0' dist/hosts.txt 2>/dev/null || echo '0')个"
+              echo "   127.0.0.1格式: $(grep -c '^127\.0\.0\.1' dist/hosts.txt 2>/dev/null || echo '0')个"
             else
-              echo "❌ Hosts文件未生成"
+              echo "❌ hosts.txt 文件未生成"
+            fi
+            
+            # 检查 Domains.txt
+            if [ -f "dist/Domains.txt" ]; then
+              echo ""
+              echo "✅ Domains文件生成成功"
+              echo "   文件大小: $(wc -c < dist/Domains.txt | numfmt --to=iec)字节"
+              echo "   文件行数: $(wc -l < dist/Domains.txt)行"
+              echo "   域名数量: $(grep -c '^[^#]' dist/Domains.txt 2>/dev/null || echo '0')个"
+            else
+              echo "❌ Domains.txt 文件未生成"
             fi
           else
             echo "❌ dist目录未生成"
@@ -140,6 +91,7 @@ jobs:
               LATEST_STATS=$(find stats/ -type f -name "*.json" -printf "%T@ %p\n" 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
               if [ -n "$LATEST_STATS" ]; then
                 echo "   最新报告: $(basename "$LATEST_STATS")"
+                echo "   报告大小: $(wc -c < "$LATEST_STATS" | numfmt --to=iec)字节"
               fi
             else
               echo "⚠️  stats目录为空，脚本可能未生成报告"
@@ -147,112 +99,27 @@ jobs:
           else
             echo "ℹ️  stats目录未生成"
           fi
-
-      - name: 提交生成的规则文件
+          
+      - name: 提交更新
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 添加所有生成的文件
-          echo "=== 准备提交文件 ==="
-          
-          # 确保有文件可提交
-          if [ ! -d "dist" ] && [ ! -d "stats" ]; then
-            echo "❌ 没有生成任何文件，跳过提交"
+          # 检查是否有变更
+          if git diff --quiet; then
+            echo "没有变更需要提交"
             exit 0
           fi
           
-          # 添加文件
-          git add dist/ stats/ 2>/dev/null || true
-          
-          # 检查状态
           echo "=== Git变更状态 ==="
-          git status --porcelain
+          git status --short
           
-          # 提交更改（使用当前时间）
-          CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-          echo "准备提交，时间: $CURRENT_TIME"
+          echo "准备提交，时间: $(date '+%Y-%m-%d %H:%M:%S')"
+          git add .
+          git commit -m "🤖 自动更新广告规则 [$(date '+%Y-%m-%d %H:%M:%S')]"
           
-          if git diff --staged --quiet; then
-            echo "⚠️ 没有检测到文件变更，无需提交。"
-            echo "可能原因："
-            echo "1. 脚本未生成新文件"
-            echo "2. 生成的文件与之前完全相同"
-            echo "3. .gitignore排除了这些文件"
-          else
-            git commit -m "🤖 自动更新广告规则 [$CURRENT_TIME]"
-            git push
-            echo "✅ 规则文件已提交并推送！"
-          fi
-
-      - name: 生成总结报告
-        if: always()
-        run: |
-          echo "### 🚀 规则更新报告" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**运行完成时间**: $(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # 清理步骤状态
-          echo "**清理状态**: ✅ 已清理 dist 和 stats 目录的旧文件" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # 文件生成状态
-          echo "**文件生成状态**: " >> $GITHUB_STEP_SUMMARY
-          if [ -f "dist/adblock_optimized.txt" ] && [ -f "dist/hosts_optimized.txt" ]; then
-            echo "✅ 两个核心规则文件均已生成" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            # 获取文件统计
-            AD_COUNT=$(grep -c '^[^!]' "dist/adblock_optimized.txt" 2>/dev/null || echo "0")
-            HOSTS_COUNT=$(grep -c '^0\.0\.0\.0' "dist/hosts_optimized.txt" 2>/dev/null || echo "0")
-            
-            # 获取文件中的时间戳
-            AD_TIME=$(head -3 dist/adblock_optimized.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo "未找到")
-            HOSTS_TIME=$(head -3 dist/hosts_optimized.txt | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1 || echo "未找到")
-            
-            echo "**规则统计**: " >> $GITHUB_STEP_SUMMARY
-            echo "- Adblock规则: $AD_COUNT 条 (时间: $AD_TIME)" >> $GITHUB_STEP_SUMMARY
-            echo "- Hosts域名: $HOSTS_COUNT 个 (时间: $HOSTS_TIME)" >> $GITHUB_STEP_SUMMARY
-            
-            # 检查stats报告
-            STATS_FILES=$(find stats/ -type f -name "*.json" -o -name "*.md" 2>/dev/null | wc -l)
-            if [ "$STATS_FILES" -gt 0 ]; then
-              echo "- 统计报告: $STATS_FILES 个" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "❌ 规则文件生成失败" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**可能原因**: " >> $GITHUB_STEP_SUMMARY
-            echo "1. 脚本执行出错" >> $GITHUB_STEP_SUMMARY
-            echo "2. 网络问题导致规则获取失败" >> $GITHUB_STEP_SUMMARY
-            echo "3. 脚本逻辑错误" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "**输出文件**: " >> $GITHUB_STEP_SUMMARY
-          
-          # 列出dist目录文件
-          echo "**dist/ 目录**: " >> $GITHUB_STEP_SUMMARY
-          find dist -name "*.txt" -type f 2>/dev/null | while read file; do
-            filename=$(basename "$file")
-            size=$(du -h "$file" | cut -f1)
-            lines=$(wc -l < "$file" | tr -d ' ')
-            echo "- \`$filename\` ($size, $lines 行)" >> $GITHUB_STEP_SUMMARY
-          done || echo "- 无规则文件" >> $GITHUB_STEP_SUMMARY
-          
-          # 列出stats目录文件
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**stats/ 目录**: " >> $GITHUB_STEP_SUMMARY
-          find stats -type f \( -name "*.json" -o -name "*.md" \) 2>/dev/null | head -5 | while read file; do
-            filename=$(basename "$file")
-            size=$(du -h "$file" | cut -f1)
-            echo "- \`$filename\` ($size)" >> $GITHUB_STEP_SUMMARY
-          done || echo "- 无统计报告" >> $GITHUB_STEP_SUMMARY
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**使用说明**: " >> $GITHUB_STEP_SUMMARY
-          echo "1. Adblock规则: 导入到uBlock Origin、AdGuard等浏览器扩展" >> $GITHUB_STEP_SUMMARY
-          echo "2. Hosts规则: 复制到系统hosts文件（需要管理员权限）" >> $GITHUB_STEP_SUMMARY
-          echo "3. 统计报告: 查看 stats/ 目录了解处理详情" >> $GITHUB_STEP_SUMMARY
+      - name: 推送变更
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
