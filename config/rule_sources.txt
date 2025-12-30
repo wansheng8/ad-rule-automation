@@ -105,3 +105,4 @@ https://raw.githubusercontent.com/AdguardTeam/ADguardFilters/master/SpywareFilte
 https://raw.githubusercontent.com/AdguardTeam/ADguardFilters/master/SpywareFilter/sections/tracking_servers_firstparty.txt
 https://raw.githubusercontent.com/AdguardTeam/ADguardFilters/master/TrackParamFilter/sections/allowlist.txt
 https://raw.githubusercontent.com/AdguardTeam/ADguardFilters/master/TrackParamFilter/sections/general_url.txt
+http://rssv.cn/adguard/api.php?type=black
