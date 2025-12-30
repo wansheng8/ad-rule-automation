@@ -1,5 +1,5 @@
 """
-配置文件 - 广告规则自动化处理系统
+配置文件 - 广告规则自动化处理系统 (TXT配置版)
 """
 
 import os
@@ -13,14 +13,14 @@ class Config:
     REPO_NAME = "ad-rule-automation"
     
     # 处理配置
-    MAX_WORKERS = 30           # 并发处理数（根据规则源数量调高）
-    REQUEST_TIMEOUT = 60       # 请求超时(秒)（根据规则源数量调高）
-    MAX_RULES_PER_TYPE = 200000  # 每种规则最大数量
+    MAX_WORKERS = 30
+    REQUEST_TIMEOUT = 60
+    MAX_RULES_PER_TYPE = 200000
     
     # 输出配置
-    OUTPUT_DIR = "dist"        # 输出目录
-    STATS_DIR = "stats"        # 统计目录
-    BACKUP_DIR = "backups"     # 备份目录
+    OUTPUT_DIR = "dist"
+    STATS_DIR = "stats"
+    BACKUP_DIR = "backups"
     
     # 规则优先级关键词
     HIGH_PRIORITY_KEYWORDS = [
@@ -35,9 +35,9 @@ class Config:
     
     # 文件命名格式
     FILE_FORMATS = {
-        'adblock': 'adblock_optimized_{date}.txt',
-        'hosts': 'hosts_optimized_{date}.txt',
-        'domains': 'domains_{date}.txt',
+        'adblock': 'Adblock.txt',
+        'hosts': 'hosts.txt',
+        'domains': 'Domains.txt',
         'stats': 'stats_{date}.json'
     }
     
@@ -45,96 +45,108 @@ class Config:
     RULE_TYPES = ['adblock', 'hosts', 'domain', 'regex', 'element_hiding']
     
     # 更新频率（Cron表达式）
-    UPDATE_SCHEDULE = '0 2 * * *'  # 每天UTC 2点（北京时间10点）
+    UPDATE_SCHEDULE = '0 2 * * *'
     
     @staticmethod
     def get_user_agent():
-        """获取User-Agent"""
         return f"AdRuleAutomation/1.0 (+https://github.com/{Config.REPO_OWNER}/{Config.REPO_NAME})"
     
     @staticmethod
     def get_current_date():
-        """获取当前日期字符串"""
         return datetime.now().strftime("%Y%m%d")
 
 # ==================== 配置加载函数 ====================
-def load_rule_sources_from_yaml():
+def load_rule_sources_from_txt():
     """
-    从 rule_sources.yaml 文件加载规则源列表
-    如果文件不存在或读取失败，则返回空字典
+    从 rule_sources.txt 文件加载规则源列表。
+    格式：每行一个URL，以#开头的为注释行。
     """
+    # 尝试 .txt 文件（新格式）
+    txt_path = os.path.join(os.path.dirname(__file__), 'rule_sources.txt')
+    # 尝试 .yaml 文件（旧格式，兼容过渡）
     yaml_path = os.path.join(os.path.dirname(__file__), 'rule_sources.yaml')
     
-    if not os.path.exists(yaml_path):
-        print(f"⚠️  警告：配置文件未找到 - {yaml_path}")
-        return {}
+    file_to_load = None
+    file_type = ''
     
+    # 确定要加载哪个文件
+    if os.path.exists(txt_path):
+        file_to_load = txt_path
+        file_type = 'TXT'
+    elif os.path.exists(yaml_path):
+        file_to_load = yaml_path
+        file_type = 'YAML'
+        print(f"⚠️  发现旧版 rule_sources.yaml 文件，建议重命名为 rule_sources.txt")
+    else:
+        print(f"⚠️  警告：未找到配置文件 rule_sources.txt 或 rule_sources.yaml")
+        return []
+    
+    urls = []
     try:
-        with open(yaml_path, 'r', encoding='utf-8') as f:
-            yaml_content = yaml.safe_load(f)
+        with open(file_to_load, 'r', encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                original_line = line.rstrip('\n')
+                line = original_line.strip()
+                
+                # 跳过空行
+                if not line:
+                    continue
+                    
+                # 跳过注释行（以#开头）
+                if line.startswith('#'):
+                    continue
+                
+                # 去除行内注释（#之后的内容）
+                if '#' in line:
+                    line = line.split('#')[0].strip()
+                    if not line:  # 如果整行都是注释
+                        continue
+                
+                # 验证是否是URL（简单检查）
+                if line.startswith(('http://', 'https://')):
+                    urls.append(line)
+                else:
+                    print(f"  警告：第 {line_num} 行格式可能不正确，已跳过: {original_line[:50]}...")
         
-        # 支持两种格式：纯URL列表或包含sources键的字典
-        if isinstance(yaml_content, list):
-            # 纯URL列表格式，将所有URL归到'adblock'类别
-            return {'adblock': yaml_content}
-        elif isinstance(yaml_content, dict):
-            # 结构化格式，直接使用
-            return yaml_content
-        else:
-            print(f"⚠️  警告：YAML文件格式不支持 - {yaml_path}")
-            return {}
-            
-    except yaml.YAMLError as e:
-        print(f"❌  YAML解析错误 - {yaml_path}: {e}")
-        return {}
+        print(f"✅ 已从 {file_type} 文件加载 {len(urls)} 个规则源")
+        return urls
+        
+    except UnicodeDecodeError:
+        print(f"❌ 文件编码错误，请确保 {file_to_load} 是 UTF-8 编码")
+        return []
     except Exception as e:
-        print(f"❌ 读取配置文件失败 - {yaml_path}: {e}")
-        return {}
+        print(f"❌ 读取配置文件失败 {file_to_load}: {e}")
+        return []
 
 # ==================== 动态生成默认规则源 ====================
-# 优先从 YAML 文件加载
-YAML_SOURCES = load_rule_sources_from_yaml()
+# 加载规则源列表
+SOURCE_URLS = load_rule_sources_from_txt()
 
-# 如果 YAML 文件加载成功，则使用它；否则回退到硬编码的默认值
-if YAML_SOURCES:
-    DEFAULT_RULE_SOURCES = YAML_SOURCES
-    # 计算总规则源数量
-    total_sources = sum(len(urls) for urls in YAML_SOURCES.values() if isinstance(urls, list))
-    print(f"✅ 已从 rule_sources.yaml 加载 {total_sources} 个规则源")
+if SOURCE_URLS:
+    DEFAULT_RULE_SOURCES = {
+        'adblock': SOURCE_URLS,
+        'hosts': [],
+        'domain': [],
+        'regex': []
+    }
+    print(f"✅ 配置解析完成，共 {len(SOURCE_URLS)} 个规则源。")
 else:
-    # 原有的硬编码默认值（保底，防止出错）
+    print("⚠️  配置文件为空或读取失败，使用内置默认规则源")
     DEFAULT_RULE_SOURCES = {
         'adblock': [
             "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
             "https://easylist.to/easylist/easylist.txt",
-            "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
-            "https://raw.githubusercontent.com/vokins/yhosts/master/data/tvbox.txt"
-        ],
-        
-        'hosts': [
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
             "https://someonewhocares.org/hosts/zero/hosts",
-            "https://raw.githubusercontent.com/notracking/hosts-blocklists/master/hostnames.txt"
         ],
-        
-        'domain': [
-            "https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt",
-            "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt"
-        ],
-        
-        'regex': [
-            "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resource-abuse.txt"
-        ]
+        'hosts': [],
+        'domain': [],
+        'regex': []
     }
-    print("ℹ️  使用内置默认规则源（未找到或未使用YAML配置）")
-
-# ==================== 分类规则源（可选） ====================
-# 如果你不需要分类，可以删除或清空这部分
-CATEGORIZED_SOURCES = {}
 
 # ==================== 辅助函数 ====================
 def get_rule_sources():
-    """获取规则源（兼容旧代码）"""
+    """获取规则源字典（兼容旧代码）"""
     return DEFAULT_RULE_SOURCES
 
 def get_sources_by_type(source_type):
@@ -142,22 +154,18 @@ def get_sources_by_type(source_type):
     return DEFAULT_RULE_SOURCES.get(source_type, [])
 
 def get_all_sources():
-    """获取所有规则源URL的扁平列表"""
-    all_sources = []
-    for source_list in DEFAULT_RULE_SOURCES.values():
-        if isinstance(source_list, list):
-            all_sources.extend(source_list)
-    return all_sources
+    """
+    获取所有规则源URL的扁平列表。
+    这是主脚本 smart_rule_processor.py 调用的核心函数。
+    """
+    return SOURCE_URLS  # 直接返回从TXT文件加载的列表
 
 # ==================== 初始化检查 ====================
 if __name__ == "__main__":
-    # 模块导入时进行简单测试
-    print(f"配置加载检查:")
-    print(f"- MAX_WORKERS: {Config.MAX_WORKERS}")
-    print(f"- REQUEST_TIMEOUT: {Config.REQUEST_TIMEOUT}")
-    print(f"- 规则源总数: {len(get_all_sources())}")
-    
-    # 显示各类型规则源数量
-    for source_type, urls in DEFAULT_RULE_SOURCES.items():
-        if isinstance(urls, list):
-            print(f"- {source_type}: {len(urls)} 个")
+    print("配置模块自检:")
+    urls = get_all_sources()
+    print(f"- 加载的规则源数量: {len(urls)}")
+    if urls:
+        print("- 前3个规则源:")
+        for i, url in enumerate(urls[:3], 1):
+            print(f"  {i}. {url}")
