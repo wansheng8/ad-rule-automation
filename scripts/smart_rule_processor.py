@@ -6,6 +6,17 @@
 
 import os
 import sys
+
+# 添加项目根目录到Python路径，确保可以导入config模块
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from config.settings import get_all_sources, Config
+except ImportError as e:
+    print(f"❌ 导入配置失败: {e}")
+    print("⚠️  请确保 config/settings.py 存在且格式正确")
+    sys.exit(1)
+
 import re
 import time
 import json
@@ -71,7 +82,9 @@ class RuleFetcher:
         """获取单个URL的内容，返回(是否成功, 内容, 行数)"""
         try:
             start_time = time.time()
-            response = self.session.get(url, timeout=30)
+            # 使用配置中的超时时间
+            timeout = getattr(Config, 'REQUEST_TIMEOUT', 30)
+            response = self.session.get(url, timeout=timeout)
             response.raise_for_status()
             
             content = response.text
@@ -102,12 +115,30 @@ class RuleProcessor:
         self.fetcher = RuleFetcher()
         self.adblock_rules = set()
         self.hosts_entries = set()
-        self.rule_sources = [
-            "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
-            "https://easylist.to/easylist/easylist.txt",
-            "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
-            "https://someonewhocares.org/hosts/zero/hosts",
-        ]
+        
+        # 从配置文件加载规则源
+        try:
+            all_sources = get_all_sources()
+            if all_sources:
+                self.rule_sources = all_sources
+            else:
+                # 如果配置文件没有规则源，使用默认的4个
+                self.rule_sources = [
+                    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
+                    "https://easylist.to/easylist/easylist.txt",
+                    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+                    "https://someonewhocares.org/hosts/zero/hosts",
+                ]
+        except Exception as e:
+            print(f"❌ 加载规则源配置失败: {e}")
+            # 出错时使用默认规则源
+            self.rule_sources = [
+                "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
+                "https://easylist.to/easylist/easylist.txt",
+                "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+                "https://someonewhocares.org/hosts/zero/hosts",
+            ]
+        
         self.stats = {
             'start_time': None,
             'end_time': None,
@@ -122,6 +153,7 @@ class RuleProcessor:
         print("=" * 60)
         print("🔄 开始处理广告规则")
         print(f"📅 当前上海时间: {get_time_string()}")
+        print(f"📊 规则源总数: {len(self.rule_sources)} 个")
         print("=" * 60)
         
         self.stats['start_time'] = get_time_string()
@@ -132,19 +164,28 @@ class RuleProcessor:
         self.fetcher.stats['total_sources'] = len(self.rule_sources)
         
         contents = {}
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        
+        # 使用配置中的MAX_WORKERS作为并发数
+        max_workers = getattr(Config, 'MAX_WORKERS', 15)
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_url = {executor.submit(self.fetcher.fetch_url, url): url 
                            for url in self.rule_sources}
+            
+            processed = 0
+            total = len(self.rule_sources)
             
             for future in as_completed(future_to_url):
                 url = future_to_url[future]
                 success, content, lines = future.result()
+                processed += 1
+                
                 if success and content:
                     contents[url] = content
-                    print(f"  ✅ 获取成功: {url} ({lines} 行)")
+                    print(f"  [{processed}/{total}] ✅ 获取成功: {url} ({lines} 行)")
                     self.stats['rules_by_source'][url] = lines
                 else:
-                    print(f"  ❌ 获取失败: {url}")
+                    print(f"  [{processed}/{total}] ❌ 获取失败: {url}")
         
         # 处理规则内容
         print(f"\n🔍 分析规则内容...")
@@ -391,8 +432,43 @@ class RuleProcessor:
         except Exception as e:
             print(f"  ⚠️  生成Markdown报告时出错: {e}")
 
+def verify_configuration():
+    """验证配置是否正确加载"""
+    try:
+        print("🔧 验证配置...")
+        all_sources = get_all_sources()
+        
+        if not all_sources:
+            print("❌ 配置文件错误: 规则源列表为空")
+            print("💡 请检查 config/rule_sources.yaml 文件格式")
+            return False
+        
+        print(f"✅ 配置验证通过: 找到 {len(all_sources)} 个规则源")
+        
+        # 检查前几个URL格式
+        print("📋 规则源示例:")
+        for i, url in enumerate(all_sources[:3], 1):
+            print(f"  {i}. {url}")
+        if len(all_sources) > 3:
+            print(f"  ... 还有 {len(all_sources) - 3} 个规则源")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ 配置验证失败: {e}")
+        return False
+
 def main():
     """主函数"""
+    print("=" * 60)
+    print("🤖 智能广告规则自动化处理系统")
+    print("=" * 60)
+    
+    # 验证配置
+    if not verify_configuration():
+        print("❌ 配置验证失败，无法继续运行")
+        return 1
+    
     processor = RuleProcessor()
     
     try:
@@ -403,6 +479,8 @@ def main():
         return 130
     except Exception as e:
         print(f"\n❌ 处理失败: {e}")
+        import traceback
+        traceback.print_exc()
         return 1
 
 if __name__ == "__main__":
