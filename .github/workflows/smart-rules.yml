@@ -8,7 +8,7 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     permissions:
       contents: write
     
@@ -41,10 +41,10 @@ jobs:
           pip install requests
           
       - name: 运行规则处理
-        timeout-minutes: 25
+        timeout-minutes: 35
         run: |
           echo "========================================"
-          echo "🚀 开始处理广告规则"
+          echo "🚀 开始处理广告规则 (多阶段优化版)"
           echo "========================================"
           python scripts/smart_rule_processor.py
           
@@ -68,14 +68,13 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # 设置时区为上海（北京时间）
-          TZ: Asia/Shanghai
+          TZ: Asia/Shanghai  # 设置时区为上海
         run: |
           # 配置Git
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 设置Git提交时间为当前正确时间
+          # 设置正确的提交时间
           export GIT_COMMITTER_DATE="$(date)"
           export GIT_AUTHOR_DATE="$(date)"
           
@@ -90,7 +89,7 @@ jobs:
           
           # 提交（使用正确的北京时间）
           CURRENT_TIME=$(date '+%Y-%m-%d %H:%M')
-          git commit -m "🤖 自动更新规则 [$CURRENT_TIME]"
+          git commit -m "🤖 自动更新规则 [$CURRENT_TIME] (多阶段优化版)"
           
           # 推送
           echo "🚀 推送变更到GitHub..."
