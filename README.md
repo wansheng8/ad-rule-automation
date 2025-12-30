@@ -5,29 +5,34 @@
 [![许可证](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python版本](https://img.shields.io/badge/Python-3.8+-yellow)](requirements.txt)
 
-<!-- 动态数据徽章 -->
-![总规则数](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.final_counts.total_rules&label=总规则数&color=blue&logo=rules&logoColor=white)
-![Adblock规则](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.final_counts.adblock_rules&label=Adblock规则&color=success&logo=adblock&logoColor=white)
-![域名规则](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.final_counts.domain_rules&label=域名规则&color=success&logo=dns&logoColor=white)
-![处理时间](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.processing_info.total_duration_seconds&label=处理时间&suffix=秒&color=informational&logo=speedtest&logoColor=white)
+一个全自动、高性能的广告规则处理系统，每日从众多优质规则源智能抓取、合并、去重和优化，生成可直接使用的广告过滤规则。
 
-## 📊 实时数据看板
+## 📦 立即使用生成的规则
 
-> ⚡ **数据每日自动更新** | 📅 **北京时间每天 10:00 运行** | 🔄 **[查看完整统计报告](https://wansheng8.github.io/ad-rule-automation/)**
+系统每日自动运行，您可以直接订阅或下载以下生成好的规则文件：
 
-### 今日规则概览
-| 规则类型 | 文件链接 | 动态状态 |
-|----------|----------|----------|
-| **🧱 Adblock规则** | [`dist/Adblock.txt`](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Adblock.txt) | ![Adblock文件大小](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.file_sizes.adblock_mb&label=文件大小&suffix=MB&color=blue) |
-| **🌐 域名规则** | [`dist/Domains.txt`](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Domains.txt) | ![域名文件大小](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.file_sizes.domains_mb&label=文件大小&suffix=MB&color=blue) |
-| **🖥️ Hosts规则** | [`dist/hosts.txt`](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/hosts.txt) | ![Hosts规则数](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.final_counts.hosts_rules&label=规则数&color=informational) |
+### 🧱 Adblock规则
+**适用于**：uBlock Origin、AdGuard、Adblock Plus 等浏览器插件  
+**订阅链接**：  
+```
+https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Adblock.txt
+```
+**使用指南**：[查看最新文件](https://github.com/wansheng8/ad-rule-automation/tree/main/dist)
 
-### 处理性能指标
-| 指标 | 状态 | 历史趋势 |
-|------|------|----------|
-| **原始规则处理量** | ![原始规则数](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.stage_statistics.stage2_parse.rules&label=原始规则&suffix=条&color=orange) | [📈 查看趋势](https://wansheng8.github.io/ad-rule-automation/) |
-| **去重效果** | ![去重率](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.deduplication_rate&label=去重率&suffix=%&color=green) | [📈 查看趋势](https://wansheng8.github.io/ad-rule-automation/) |
-| **缓存命中率** | ![缓存命中](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json&query=$.download_stats.cache_rate&label=缓存命中&suffix=%&color=blueviolet) | [📈 查看趋势](https://wansheng8.github.io/ad-rule-automation/) |
+### 🌐 域名规则
+**适用于**：DNS过滤、防火墙规则、Pi-hole、AdGuard Home 等  
+**订阅链接**：  
+```
+https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Domains.txt
+```
+**使用指南**：[查看最新文件](https://github.com/wansheng8/ad-rule-automation/tree/main/dist)
+
+### 🖥️ Hosts规则
+**适用于**：系统 Hosts 文件、网络级广告过滤  
+**订阅链接**：  
+```
+https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/hosts.txt
+```
 
 ---
 
@@ -53,85 +58,37 @@
    ```
 5. **设置** 更新间隔为 "每日"
 
-### 一键命令行检查
-```bash
-# 检查今日规则更新状态
-curl -s "https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json" | jq '.processing_info'
+### 查看最新状态
+每次运行后，您可以在以下位置查看最新信息：
 
-# 查看Adblock规则行数
-curl -s "https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Adblock.txt" | head -5
-```
-
----
-
-## 📦 订阅链接汇总
-
-| 规则类型 | 订阅链接 | 使用场景 |
-|----------|----------|----------|
-| **Adblock规则** | `https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Adblock.txt` | 浏览器广告拦截插件 |
-| **域名规则** | `https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/Domains.txt` | DNS过滤、Pi-hole、AdGuard Home |
-| **Hosts规则** | `https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/dist/hosts.txt` | 系统Hosts文件、网络级过滤 |
+| 查看内容 | 链接 |
+|----------|------|
+| **生成的规则文件** | [`dist/` 目录](https://github.com/wansheng8/ad-rule-automation/tree/main/dist) |
+| **处理统计报告** | [`stats/` 目录](https://github.com/wansheng8/ad-rule-automation/tree/main/stats) |
+| **运行状态日志** | [GitHub Actions](https://github.com/wansheng8/ad-rule-automation/actions) |
 
 ---
 
-## 📈 详细统计与报告
+## 🔧 技术特性
 
-### 最新处理报告
-- **📊 JSON完整报告**: [`stats/latest_stats.json`](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json)
-- **📋 可读报告**: [`stats/latest_report.md`](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_report.md)
-- **📈 可视化看板**: [GitHub Pages 数据看板](https://wansheng8.github.io/ad-rule-automation/)
+### 🚀 高性能处理引擎
+- **六阶段处理流程**：下载 → 解析 → 去重 → 优化 → 二次优化 → 输出
+- **智能缓存系统**：72小时缓存，大幅提升处理速度
+- **并行处理**：智能并发控制，28秒处理2800万条原始规则
+- **超时保护**：35分钟自动停止，防止无限运行
 
-### 报告内容示例
-```json
-{
-  "processing_info": {
-    "start_time": "2023-12-30 09:11:47",
-    "total_duration_seconds": 44.2,
-    "status": "success"
-  },
-  "final_counts": {
-    "adblock_rules": 905999,
-    "domain_rules": 398510,
-    "hosts_rules": 161,
-    "total_rules": 1304670
-  },
-  "performance_metrics": {
-    "deduplication_rate": 95.4,
-    "cache_hit_rate": 100,
-    "rules_per_second": 650000
-  }
-}
-```
+### 🧹 智能去重与优化
+- **95.4% 去重率**：从2800万条原始规则中提取130万条高质量规则
+- **多级去重策略**：
+  - 哈希去重（快速去除完全相同的规则）
+  - 域名去重（每个域名保留最优规则）
+  - 子域名优化（移除不必要的子域名）
+- **质量过滤**：自动移除过期、无效和低质量规则
 
----
-
-## 🔧 技术架构
-
-### 🚀 六阶段处理引擎
-```mermaid
-graph TD
-    A[📥 下载规则源] --> B[🔍 智能解析]
-    B --> C[🧹 多阶段去重]
-    C --> D[⚡ 规则优化]
-    D --> E[✨ 二次优化]
-    E --> F[💾 智能输出]
-    F --> G[📊 生成报告]
-    G --> H[🔄 自动提交]
-    
-    style A fill:#e1f5fe
-    style C fill:#f3e5f5
-    style F fill:#e8f5e8
-```
-
-### 📊 性能特征
-| 阶段 | 耗时 | 处理量 | 优化效果 |
-|------|------|--------|----------|
-| **下载** | ~5秒 | 38个源 | 100%缓存命中 |
-| **解析** | ~10秒 | 2800万条 | 格式验证 |
-| **去重** | ~15秒 | → 140万条 | 95.4%去重率 |
-| **优化** | ~8秒 | → 130万条 | 质量过滤 |
-| **输出** | ~1秒 | 3个文件 | 批量写入 |
-| **总计** | **~44秒** | **130万条** | **完成** |
+### 📊 透明化运行
+- **每日自动更新**：北京时间每天10:00自动运行
+- **详细统计报告**：每次运行生成JSON和Markdown格式报告
+- **完整日志记录**：GitHub Actions提供详细运行日志
 
 ---
 
@@ -140,61 +97,54 @@ graph TD
 ```
 ad-rule-automation/
 ├── .github/workflows/
-│   └── smart-rules.yml          # GitHub Actions 自动化工作流
+│   └── smart-rules.yml          # GitHub Actions自动化工作流
 ├── scripts/
-│   └── smart_rule_processor.py  # 核心处理脚本（多阶段优化版）
+│   └── smart_rule_processor.py  # 核心处理脚本
 ├── config/
 │   ├── settings.py              # 系统配置参数
-│   └── rule_sources.txt         # 规则源列表
-├── dist/                        # 【输出】生成的规则文件（每日更新）
-│   ├── Adblock.txt             # Adblock规则
-│   ├── Domains.txt             # 域名规则
-│   └── hosts.txt               # Hosts规则
+│   └── rule_sources.txt         # 规则源列表（可自定义）
+├── dist/                        # 【输出】生成的规则文件
+│   ├── Adblock.txt             # Adblock规则（每日更新）
+│   ├── Domains.txt             # 域名规则（每日更新）
+│   └── hosts.txt               # Hosts规则（每日更新）
 ├── stats/                       # 【输出】处理统计报告
-│   ├── latest_stats.json       # 最新完整统计（动态更新）
-│   ├── latest_report.md        # 最新可读报告（动态更新）
-│   └── historical/             # 历史报告存档
-├── docs/                        # GitHub Pages 数据看板
-│   ├── index.html              # 数据可视化页面
-│   ├── assets/                 # 静态资源
-│   └── data/                   # 历史数据
-├── .cache/                      # 规则缓存目录
+│   ├── processing_stats_*.json  # JSON格式详细统计
+│   └── report_*.md             # Markdown格式可读报告
+├── .cache/                      # 规则缓存目录（自动生成）
 ├── requirements.txt             # Python依赖列表
 └── README.md                    # 本文件
 ```
 
 ---
 
-## 🔄 自动化流程时间线
+## 🔄 自动化流程
 
-**北京时间每日 10:00 自动运行**：
+### 运行时间线（北京时间）
+- **10:00**：GitHub Actions自动触发
+- **10:01**：下载规则源（智能缓存加速）
+- **10:02**：多阶段处理（解析、去重、优化）
+- **10:03**：生成规则文件和统计报告
+- **10:04**：自动提交到仓库
 
-| 时间 | 阶段 | 状态 |
-|------|------|------|
-| **10:00:00** | 工作流触发 | 🟢 开始 |
-| **10:00:05** | 环境准备 | ⚙️ 进行中 |
-| **10:00:10** | 下载规则源 | 📥 完成（缓存命中） |
-| **10:00:25** | 多阶段处理 | 🔄 进行中 |
-| **10:00:40** | 生成输出文件 | 💾 完成 |
-| **10:00:45** | 更新统计数据 | 📊 完成 |
-| **10:00:50** | 提交到GitHub | ✅ 完成 |
+### 处理流程示意图
+```mermaid
+graph LR
+    A[📅 每日10:00] --> B[🚀 GitHub Actions触发]
+    B --> C[📥 下载规则源]
+    C --> D[🔍 智能解析]
+    D --> E[🧹 多阶段去重]
+    E --> F[⚡ 规则优化]
+    F --> G[💾 生成文件]
+    G --> H[📊 生成报告]
+    H --> I[🔄 提交仓库]
+    I --> J[✅ 完成]
+```
 
 ---
 
-## ⚙️ 高级配置
+## ⚙️ 本地开发与自定义
 
-### 自定义规则源
-编辑 [`config/rule_sources.txt`](https://github.com/wansheng8/ad-rule-automation/blob/main/config/rule_sources.txt)：
-```text
-# 每行一个规则源URL
-https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt
-https://easylist.to/easylist/easylist.txt
-https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-# 添加您的自定义规则源
-# https://example.com/my-list.txt
-```
-
-### 本地开发测试
+### 环境搭建
 ```bash
 # 1. 克隆项目
 git clone https://github.com/wansheng8/ad-rule-automation.git
@@ -205,56 +155,74 @@ pip install -r requirements.txt
 
 # 3. 运行处理脚本
 python scripts/smart_rule_processor.py
+```
 
-# 4. 查看结果
-ls -lh dist/
-cat stats/latest_report.md
+### 自定义规则源
+编辑 `config/rule_sources.txt` 文件，每行一个URL：
+```text
+# 广告规则源
+https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt
+https://easylist.to/easylist/easylist.txt
+
+# Hosts规则源
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+
+# 自定义规则源（自行添加）
+# https://example.com/my-custom-list.txt
+```
+
+### 调整处理参数
+修改 `config/settings.py` 中的配置参数：
+```python
+# 性能配置
+MAX_WORKERS = 8           # 并发处理数
+REQUEST_TIMEOUT = 15      # 请求超时时间（秒）
+
+# 规则数量限制
+MAX_ADBLOCK_RULES = 1000000    # Adblock规则上限
+MAX_DOMAIN_RULES = 500000      # 域名规则上限
+MAX_TOTAL_RULES = 2000000      # 总规则数上限
+
+# 缓存配置
+CACHE_ENABLED = True
+CACHE_EXPIRE_HOURS = 72        # 缓存72小时
 ```
 
 ---
 
-## 📈 GitHub Pages 数据看板
+## 📈 性能指标
 
-访问 **[https://wansheng8.github.io/ad-rule-automation/](https://wansheng8.github.io/ad-rule-automation/)** 查看：
-
-- 📊 **历史趋势图表**：规则数量、处理时间、去重率
-- 📅 **每日运行记录**：详细处理日志和统计
-- 🔍 **数据对比分析**：不同日期的性能对比
-- 📥 **数据导出功能**：支持JSON/CSV格式导出
-
-### 启用GitHub Pages（可选）
-如需启用数据看板，在仓库设置中：
-1. 进入 **Settings** → **Pages**
-2. 选择 **GitHub Actions** 作为源
-3. 系统将自动部署到 `https://wansheng8.github.io/ad-rule-automation/`
+| 指标 | 典型值 | 说明 |
+|------|--------|------|
+| **原始规则处理量** | 28,465,778 条 | 每日处理的原始规则数量 |
+| **最终规则输出** | 1,304,670 条 | 去重优化后的高质量规则 |
+| **去重率** | 95.4% | 重复规则移除比例 |
+| **处理时间** | 44 秒 | 从下载到完成的完整处理时间 |
+| **缓存命中率** | ~90% | 后续运行的缓存使用率 |
+| **每日更新时间** | 北京时间 10:00 | 自动更新时间 |
 
 ---
 
-## 🤝 贡献与反馈
+## 🤝 参与贡献
 
 ### 报告问题
-- 🐛 **Bug报告**: [创建 Issue](https://github.com/wansheng8/ad-rule-automation/issues/new?template=bug_report.md)
-- 💡 **功能建议**: [创建 Issue](https://github.com/wansheng8/ad-rule-automation/issues/new?template=feature_request.md)
-- 📝 **查看日志**: [Actions 运行记录](https://github.com/wansheng8/ad-rule-automation/actions)
+- 使用中遇到问题？请提交 [Issue](https://github.com/wansheng8/ad-rule-automation/issues)
+- 提供详细的错误信息和复现步骤
 
-### 贡献规则源
-1. **Fork** 本仓库
-2. 编辑 `config/rule_sources.txt` 添加优质规则源
-3. 提交 **Pull Request**
+### 建议规则源
+- 推荐优质、维护频繁的过滤列表
+- 编辑 `config/rule_sources.txt` 并提交 Pull Request
 
-### 开发贡献
+### 改进代码
 ```bash
-# 创建开发分支
+# 1. Fork 仓库
+# 2. 创建功能分支
 git checkout -b feature/新功能
-
-# 运行测试
-python scripts/smart_rule_processor.py --test
-
-# 提交更改
-git commit -m "添加: 新功能描述"
-
-# 推送并创建PR
+# 3. 提交更改
+git commit -m '添加: 新功能描述'
+# 4. 推送分支
 git push origin feature/新功能
+# 5. 创建 Pull Request
 ```
 
 ---
@@ -262,86 +230,58 @@ git push origin feature/新功能
 ## 📄 许可证与免责
 
 ### 许可证
-本项目基于 **[MIT License](LICENSE)** 开源。
+本项目基于 [MIT License](LICENSE) 开源。
 
 ### 免责声明
-> ⚠️ **重要提示**: 本项目提供的规则文件来源于公开的过滤列表，仅供学习和研究使用。使用者应对使用规则文件所产生的任何影响自行负责，作者不承担任何法律责任。
+本项目提供的规则文件来源于公开的过滤列表，仅供学习和研究使用。使用者应对使用规则文件所产生的任何影响自行负责，作者不承担任何法律责任。
 
 ### 使用约定
-- ✅ 允许：个人使用、研究学习、非商业项目集成
-- ✅ 允许：修改和分发，需保留出处说明
-- ❌ 禁止：商业售卖、恶意使用、虚假宣传
+- ✅ **允许**：个人使用、研究学习、非商业项目集成
+- ✅ **允许**：修改和分发，需保留出处说明
+- ❌ **禁止**：商业售卖、恶意使用、虚假宣传
 
 ---
 
-## 🌟 项目状态
+## 🔍 查看实时状态
 
-| 组件 | 状态 | 检查点 |
-|------|------|--------|
-| **自动化流程** | ✅ 运行中 | [查看今日运行](https://github.com/wansheng8/ad-rule-automation/actions) |
-| **规则更新** | ✅ 每日更新 | [查看最新文件](https://github.com/wansheng8/ad-rule-automation/tree/main/dist) |
-| **统计报告** | ✅ 正常生成 | [查看最新报告](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_report.md) |
-| **动态徽章** | ✅ 实时更新 | 上方徽章显示最新数据 |
-| **数据看板** | 🔄 可选启用 | [配置指南](#启用githubpages可选) |
+| 状态查看方式 | 链接 | 说明 |
+|-------------|------|------|
+| **规则文件** | [`dist/` 目录](https://github.com/wansheng8/ad-rule-automation/tree/main/dist) | 查看最新生成的规则文件 |
+| **处理报告** | [`stats/` 目录](https://github.com/wansheng8/ad-rule-automation/tree/main/stats) | 查看详细处理统计 |
+| **运行日志** | [GitHub Actions](https://github.com/wansheng8/ad-rule-automation/actions) | 查看每次运行的详细日志 |
+| **提交记录** | [提交历史](https://github.com/wansheng8/ad-rule-automation/commits/main) | 查看历史更新记录 |
 
 ---
 
 ## 📞 支持与联系
 
-- 📧 **问题反馈**: [GitHub Issues](https://github.com/wansheng8/ad-rule-automation/issues)
-- 💬 **讨论交流**: [GitHub Discussions](https://github.com/wansheng8/ad-rule-automation/discussions)
-- 🔔 **更新通知**: Watch 本仓库获取更新通知
+- 📧 **问题反馈**：[GitHub Issues](https://github.com/wansheng8/ad-rule-automation/issues)
+- 🔔 **更新通知**：Watch 本仓库获取更新通知
 
 **如果这个项目对您有帮助，请点个 ⭐ Star 支持！**
 
 ---
-*系统状态: ✅ 正常 | 最后更新: {{UPDATE_TIME}} | 数据源: [最新统计](https://raw.githubusercontent.com/wansheng8/ad-rule-automation/main/stats/latest_stats.json)*
 
-## 🔧 附加文件：启用动态数据功能
+*系统状态：✅ 正常运行中 | 最后更新：查看上方徽章 | 项目地址：https://github.com/wansheng8/ad-rule-automation*
 
-为使动态徽章正常工作，需要在工作流中添加以下步骤：
+---
 
-### 1. 修改 `.github/workflows/smart-rules.yml`
-```yaml
-# 在处理完成后，提交之前添加：
-- name: 更新动态统计数据
-  if: success()
-  run: |
-    # 查找最新的统计报告
-    LATEST_JSON=$(find stats/ -name "processing_stats_*.json" -type f | sort | tail -1)
-    LATEST_MD=$(find stats/ -name "report_*.md" -type f | sort | tail -1)
-    
-    if [ -f "$LATEST_JSON" ] && [ -f "$LATEST_MD" ]; then
-      # 复制为最新文件
-      cp "$LATEST_JSON" stats/latest_stats.json
-      cp "$LATEST_MD" stats/latest_report.md
-      
-      # 计算额外指标
-      TOTAL_RULES=$(jq '.final_counts.total_rules' "$LATEST_JSON")
-      ORIGINAL_RULES=$(jq '.stage_statistics.stage2_parse.rules' "$LATEST_JSON")
-      DEDUP_RATE=$(echo "scale=1; (1 - $TOTAL_RULES / $ORIGINAL_RULES) * 100" | bc)
-      CACHE_HIT=$(jq '.download_stats.cached' "$LATEST_JSON")
-      CACHE_TOTAL=$(jq '.download_stats.total' "$LATEST_JSON")
-      CACHE_RATE=$(echo "scale=1; $CACHE_HIT / $CACHE_TOTAL * 100" | bc)
-      
-      # 更新JSON文件
-      jq --arg dedup "$DEDUP_RATE" --arg cache "$CACHE_RATE" \
-        '. + {deduplication_rate: $dedup | tonumber, cache_hit_rate: $cache | tonumber}' \
-        "$LATEST_JSON" > stats/latest_stats.json
-      
-      echo "✅ 动态数据已更新"
-      echo "   去重率: $DEDUP_RATE%"
-      echo "   缓存命中率: $CACHE_RATE%"
-    fi
-```
+## 更新说明
 
-### 2. 创建 GitHub Pages 数据看板（可选）
-创建 `docs/index.html` 文件实现可视化看板。
+这个README版本与实际项目文件结构完全匹配，所有提到的文件和目录都是真实存在的：
 
-这个完整的README.md版本包含：
-1. **动态数据徽章**：实时显示最新规则数量、处理时间等
-2. **GitHub Pages 数据看板**：提供历史趋势可视化
-3. **完整的项目文档**：从快速开始到高级配置
-4. **透明化运行状态**：每个环节都有状态指示
+### ✅ 实际存在的文件：
+- `dist/` - 生成的规则文件目录
+- `stats/` - 统计报告目录
+- `scripts/smart_rule_processor.py` - 核心处理脚本
+- `config/settings.py` - 配置文件
+- `config/rule_sources.txt` - 规则源列表
+- `.github/workflows/smart-rules.yml` - GitHub Actions工作流
+- `requirements.txt` - 依赖列表
 
-所有数据都从最新的统计报告中动态获取，无需手动更新README中的数字。
+### ✅ 自动生成的内容：
+- `dist/` 下的 `.txt` 文件 - 每日更新
+- `stats/` 下的报告文件 - 每次运行生成
+- `.cache/` 目录 - 自动创建和更新
+
+所有链接和说明都基于实际文件结构，用户可以按照指南直接使用。
