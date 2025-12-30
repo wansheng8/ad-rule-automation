@@ -59,63 +59,65 @@ class Config:
 def load_rule_sources_from_txt():
     """
     从 rule_sources.txt 文件加载规则源列表。
-    格式：每行一个URL，以#开头的为注释行。
+    格式：每行一个URL，支持空行和#号注释。
     """
-    # 尝试 .txt 文件（新格式）
     txt_path = os.path.join(os.path.dirname(__file__), 'rule_sources.txt')
-    # 尝试 .yaml 文件（旧格式，兼容过渡）
     yaml_path = os.path.join(os.path.dirname(__file__), 'rule_sources.yaml')
     
     file_to_load = None
-    file_type = ''
     
-    # 确定要加载哪个文件
+    # 确定加载哪个文件
     if os.path.exists(txt_path):
         file_to_load = txt_path
-        file_type = 'TXT'
     elif os.path.exists(yaml_path):
         file_to_load = yaml_path
-        file_type = 'YAML'
         print(f"⚠️  发现旧版 rule_sources.yaml 文件，建议重命名为 rule_sources.txt")
     else:
         print(f"⚠️  警告：未找到配置文件 rule_sources.txt 或 rule_sources.yaml")
         return []
     
     urls = []
+    loaded_count = 0
+    skipped_count = 0
+    
     try:
         with open(file_to_load, 'r', encoding='utf-8') as f:
             for line_num, line in enumerate(f, 1):
-                original_line = line.rstrip('\n')
+                original_line = line.rstrip('\n\r')
                 line = original_line.strip()
                 
                 # 跳过空行
                 if not line:
                     continue
                     
-                # 跳过注释行（以#开头）
+                # 跳过以#开头的注释行
                 if line.startswith('#'):
                     continue
                 
-                # 去除行内注释（#之后的内容）
+                # 去除字符串首尾的双引号或单引号
+                line = line.strip('"').strip("'")
+                
+                # 去除行尾的注释（#之后的内容）
                 if '#' in line:
                     line = line.split('#')[0].strip()
-                    if not line:  # 如果整行都是注释
-                        continue
                 
-                # 验证是否是URL（简单检查）
-                if line.startswith(('http://', 'https://')):
+                # 最终检查：行不能为空，且应包含点号（简易URL检查）
+                if line and '.' in line:
                     urls.append(line)
+                    loaded_count += 1
                 else:
-                    print(f"  警告：第 {line_num} 行格式可能不正确，已跳过: {original_line[:50]}...")
+                    print(f"  警告：第 {line_num} 行内容无效，已跳过: {original_line[:60]}")
+                    skipped_count += 1
         
-        print(f"✅ 已从 {file_type} 文件加载 {len(urls)} 个规则源")
+        print(f"✅ 已从 {os.path.basename(file_to_load)} 加载 {loaded_count} 个规则源")
+        if skipped_count > 0:
+            print(f"⚠️  跳过了 {skipped_count} 个无效行")
         return urls
         
-    except UnicodeDecodeError:
-        print(f"❌ 文件编码错误，请确保 {file_to_load} 是 UTF-8 编码")
-        return []
     except Exception as e:
-        print(f"❌ 读取配置文件失败 {file_to_load}: {e}")
+        print(f"❌ 读取配置文件失败: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 # ==================== 动态生成默认规则源 ====================
