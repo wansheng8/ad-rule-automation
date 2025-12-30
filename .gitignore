@@ -63,31 +63,36 @@ dmypy.json
 .pyre/
 .pytype/
 
-# Ruff
-.ruff_cache/
-
 # Cython
 cython_debug/
 
 # ------------------------------
 # 本项目特定规则
 # ------------------------------
-# 忽略 dist 目录下的临时、缓存和中间文件
-# 但允许提交核心的规则文件 (.txt) 和统计文件 (.json)
+# 缓存目录（包含下载的规则缓存）
+.cache/
+
+# dist目录下的临时、缓存和中间文件（但保留生成的规则文件）
 dist/*.log
 dist/*.tmp
 dist/*.cache
-# 注意：dist/*.txt 和 dist/*.json 已被移除，因为它们正是需要提交的产物！
+dist/*.part
+dist/*.partial
+dist/Adblock_partial.txt
 
-# 忽略 stats 目录下的缓存或临时文件
+# stats目录下的临时文件（但保留JSON和MD报告）
 stats/*.tmp
-# 注意：stats/*.json 和 stats/*.md 已被移除，它们是重要的报告文件。
+stats/*.cache
 
-# 忽略 backups 目录下的所有内容（根据你的需求，通常备份不需要提交）
+# checks目录（规则自查报告）
+checks/
+
+# 原始规则备份目录
 backups/
 
-# 忽略 rules 目录下的原始规则文件（如果不需要提交原始数据）
-# rules/*
+# 本地测试文件
+test_*.txt
+debug_*.log
 
 # ------------------------------
 # 开发环境与编辑器
@@ -114,10 +119,15 @@ venv.bak/
 *.ipr
 *.iws
 
+# IDE - Sublime Text
+*.sublime-workspace
+*.sublime-project
+
 # IDE - 其他
 *.swp
 *.swo
 *~
+*#
 
 # ------------------------------
 # 操作系统文件
@@ -126,6 +136,12 @@ venv.bak/
 .DS_Store
 .AppleDouble
 .LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Windows
 Thumbs.db
@@ -141,9 +157,38 @@ $RECYCLE.BIN/
 # ------------------------------
 *.log
 logs/
+*.pid
+*.pid.lock
 
 # ------------------------------
 # 临时文件
 # ------------------------------
 tmp/
 temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ------------------------------
+# GitHub Actions 工作流缓存
+# ------------------------------
+# 避免提交GitHub Actions的缓存文件
+.github/workflows/*.cache
+.github/workflows/*.tmp
+
+# ------------------------------
+# 个人配置文件（不提交）
+# ------------------------------
+# 本地开发配置
+config/local_settings.py
+config/development.yaml
+config/personal_sources.txt
+
+# ------------------------------
+# 大文件存储（如果使用）
+# ------------------------------
+# Git LFS 追踪的大文件
+*.zip
+*.tar.gz
+*.7z
