@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-智能广告规则处理系统 - 优化统计版
-生成 Adblock 和 Hosts 格式的广告规则
+智能广告规则处理系统 - 支持三格式输出版
+生成 Adblock、Hosts 和 纯域名 三种格式的广告规则
 """
 
 import os
@@ -72,7 +72,7 @@ class RuleFetcher:
         session.mount("https://", adapter)
         
         session.headers.update({
-            'User-Agent': 'AdRuleAutomation/2.0',
+            'User-Agent': 'AdRuleAutomation/3.0',
             'Accept': 'text/plain, */*',
         })
         
@@ -109,12 +109,13 @@ class RuleFetcher:
             return False, None, 0
 
 class RuleProcessor:
-    """规则处理器"""
+    """规则处理器 - 支持三格式输出"""
     
     def __init__(self):
         self.fetcher = RuleFetcher()
-        self.adblock_rules = set()
-        self.hosts_entries = set()
+        self.adblock_rules = set()      # Adblock-style 规则
+        self.hosts_entries = set()      # /etc/hosts 格式规则
+        self.domains_set = set()        # 纯域名列表
         
         # 从配置文件加载规则源
         try:
@@ -191,20 +192,23 @@ class RuleProcessor:
         print(f"\n🔍 分析规则内容...")
         previous_adblock_count = len(self.adblock_rules)
         previous_hosts_count = len(self.hosts_entries)
+        previous_domains_count = len(self.domains_set)
         
         for url, content in contents.items():
             self._parse_content(content, url)
         
         # 计算统计
-        self.stats['rules_processed'] = len(self.adblock_rules) + len(self.hosts_entries)
+        self.stats['rules_processed'] = len(self.adblock_rules) + len(self.hosts_entries) + len(self.domains_set)
         
         # 判断是否需要更新
         current_adblock_count = len(self.adblock_rules)
         current_hosts_count = len(self.hosts_entries)
+        current_domains_count = len(self.domains_set)
         
-        if current_adblock_count > 0 and current_hosts_count > 0:
+        if current_adblock_count > 0 and current_hosts_count > 0 and current_domains_count > 0:
             if (current_adblock_count != previous_adblock_count or 
-                current_hosts_count != previous_hosts_count):
+                current_hosts_count != previous_hosts_count or
+                current_domains_count != previous_domains_count):
                 self.stats['update_status'] = 'updated'
             else:
                 self.stats['update_status'] = 'no_change'
@@ -228,7 +232,8 @@ class RuleProcessor:
             print(f"{status_emoji} 处理完成！状态: {self.stats['update_status']}")
             print(f"⏱️  总耗时: {elapsed_time:.2f}秒")
             print(f"📊 Adblock规则: {current_adblock_count} 条")
-            print(f"📊 Hosts域名: {current_hosts_count} 个")
+            print(f"📊 Hosts规则: {current_hosts_count} 个")
+            print(f"📊 纯域名: {current_domains_count} 个")
             print(f"📈 规则源: {self.fetcher.stats['successful']}成功/{self.fetcher.stats['failed']}失败")
         else:
             print(f"❌ 处理失败")
@@ -237,54 +242,84 @@ class RuleProcessor:
         return success and self.stats['update_status'] != 'failed'
     
     def _parse_content(self, content: str, source_url: str):
-        """解析规则内容"""
+        """解析规则内容，分离三种格式"""
         lines = content.split('\n')
         source_adblock = 0
         source_hosts = 0
+        source_domains = 0
         
         for line in lines:
             line = line.strip()
             if not line or line.startswith('!') or line.startswith('#'):
                 continue
             
-            # 识别Adblock规则
+            # 1. 识别Adblock-style规则 (现代浏览器广告拦截器兼容)
+            # 包括：||domain.com^, |https://..., ##selector, /regex/
             if (line.startswith('||') and line.endswith('^')) or \
                line.startswith('|') or \
                '##' in line or \
-               line.startswith('/'):
+               line.startswith('/') and line.endswith('/'):
                 if line not in self.adblock_rules:
                     self.adblock_rules.add(line)
                     source_adblock += 1
             
-            # 识别Hosts规则
+            # 2. 识别Hosts规则 (/etc/hosts 语法)
+            # 格式: 0.0.0.0 domain.com 或 127.0.0.1 domain.com
             elif re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+', line):
                 parts = line.split()
                 if len(parts) >= 2 and parts[0] in ['0.0.0.0', '127.0.0.1']:
+                    # 保留完整hosts格式
                     rule = f"{parts[0]} {parts[1]}"
                     if rule not in self.hosts_entries:
                         self.hosts_entries.add(rule)
                         source_hosts += 1
+                    
+                    # 同时提取域名用于纯域名列表
+                    domain = parts[1]
+                    if self._is_valid_domain(domain) and domain not in self.domains_set:
+                        self.domains_set.add(domain)
+                        source_domains += 1
+            
+            # 3. 识别纯域名规则
+            # 简单域名列表: domain.com, sub.domain.com
+            elif self._is_valid_domain(line):
+                if line not in self.domains_set:
+                    self.domains_set.add(line)
+                    source_domains += 1
         
         # 记录该源的贡献
-        if source_adblock > 0 or source_hosts > 0:
+        if source_adblock > 0 or source_hosts > 0 or source_domains > 0:
             self.stats['rules_by_source'][source_url] = {
                 'adblock': source_adblock,
                 'hosts': source_hosts,
-                'total': source_adblock + source_hosts
+                'domains': source_domains,
+                'total': source_adblock + source_hosts + source_domains
             }
     
+    def _is_valid_domain(self, text: str) -> bool:
+        """检查是否为有效的域名格式"""
+        # 简单域名验证：包含点号，只包含字母、数字、点号和连字符
+        if not text or ' ' in text or '#' in text or '!' in text:
+            return False
+        
+        # 匹配常见域名模式
+        domain_pattern = r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
+        return bool(re.match(domain_pattern, text))
+    
     def _save_results(self) -> bool:
-        """保存规则结果"""
+        """保存三种格式的规则结果到 dist/ 目录"""
         try:
             os.makedirs("dist", exist_ok=True)
             os.makedirs("stats", exist_ok=True)
             
             current_time = get_time_string()
+            timestamp = get_shanghai_time().strftime('%Y%m%d_%H%M%S')
             
-            # 保存Adblock规则
-            adblock_file = "dist/adblock_optimized.txt"
+            # 1. 保存Adblock规则 (Adblock.txt)
+            adblock_file = "dist/Adblock.txt"
             with open(adblock_file, 'w', encoding='utf-8') as f:
-                f.write(f"""! Adblock规则
+                f.write(f"""! Adblock-style 规则
+! 现代浏览器广告拦截器兼容格式 (uBlock Origin, AdGuard, Adblock Plus)
 ! 最后更新: {current_time}
 ! 规则总数: {len(self.adblock_rules)}
 ! 更新状态: {self.stats['update_status']}
@@ -295,35 +330,70 @@ class RuleProcessor:
 !
 
 """)
-                f.write('\n'.join(sorted(self.adblock_rules)))
+                # 排序并写入规则
+                for rule in sorted(self.adblock_rules):
+                    f.write(f"{rule}\n")
             
-            print(f"  ✅ 保存Adblock规则: {len(self.adblock_rules)} 条")
+            print(f"  ✅ 保存Adblock规则: {len(self.adblock_rules)} 条 -> dist/Adblock.txt")
             
-            # 保存Hosts规则
-            hosts_file = "dist/hosts_optimized.txt"
+            # 2. 保存Hosts规则 (hosts.txt)
+            hosts_file = "dist/hosts.txt"
             with open(hosts_file, 'w', encoding='utf-8') as f:
-                f.write(f"""# Hosts规则
+                f.write(f"""# /etc/hosts 语法规则
+# 与操作系统hosts文件兼容的格式
 # 最后更新: {current_time}
-# 域名总数: {len(self.hosts_entries)}
+# 规则总数: {len(self.hosts_entries)}
 # 更新状态: {self.stats['update_status']}
 # 
 # 由智能广告规则处理系统生成
 # 时区: 上海 (UTC+8)
 # GitHub: https://github.com/wansheng8/ad-rule-automation
 # 
-# 使用方法: 复制到系统hosts文件
-# 格式: 0.0.0.0 example.com
+# 使用方法: 复制到系统hosts文件 (Windows: C:\Windows\System32\drivers\etc\hosts)
+# 格式: 0.0.0.0 example.com 或 127.0.0.1 example.com
 #
 
 """)
-                f.write('\n'.join(sorted(self.hosts_entries)))
+                # 排序并写入规则，优先0.0.0.0格式
+                sorted_hosts = sorted(self.hosts_entries)
+                # 将0.0.0.0格式的规则放在前面
+                zero_hosts = [h for h in sorted_hosts if h.startswith('0.0.0.0')]
+                local_hosts = [h for h in sorted_hosts if h.startswith('127.0.0.1')]
+                
+                for rule in zero_hosts + local_hosts:
+                    f.write(f"{rule}\n")
             
-            print(f"  ✅ 保存Hosts规则: {len(self.hosts_entries)} 个域名")
+            print(f"  ✅ 保存Hosts规则: {len(self.hosts_entries)} 个 -> dist/hosts.txt")
+            
+            # 3. 保存纯域名列表 (Domains.txt)
+            domains_file = "dist/Domains.txt"
+            with open(domains_file, 'w', encoding='utf-8') as f:
+                f.write(f"""# 纯域名列表
+# 简单的域名列表，适用于DNS过滤、防火墙规则等
+# 最后更新: {current_time}
+# 域名总数: {len(self.domains_set)}
+# 更新状态: {self.stats['update_status']}
+# 
+# 由智能广告规则处理系统生成
+# 时区: 上海 (UTC+8)
+# GitHub: https://github.com/wansheng8/ad-rule-automation
+# 
+# 使用方法: 每行一个域名，适用于DNS级过滤
+#
+
+""")
+                # 按域名排序
+                for domain in sorted(self.domains_set):
+                    f.write(f"{domain}\n")
+            
+            print(f"  ✅ 保存纯域名列表: {len(self.domains_set)} 个 -> dist/Domains.txt")
             
             return True
             
         except Exception as e:
             print(f"  ❌ 保存失败: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def _generate_detailed_stats(self):
@@ -343,6 +413,7 @@ class RuleProcessor:
                 "rules_summary": {
                     "adblock_rules": len(self.adblock_rules),
                     "hosts_entries": len(self.hosts_entries),
+                    "domains": len(self.domains_set),
                     "total_processed": self.stats['rules_processed']
                 },
                 "sources_summary": {
@@ -354,6 +425,11 @@ class RuleProcessor:
                 },
                 "source_details": self.fetcher.stats['source_details'],
                 "rules_by_source": self.stats['rules_by_source'],
+                "output_files": {
+                    "adblock": "dist/Adblock.txt",
+                    "hosts": "dist/hosts.txt", 
+                    "domains": "dist/Domains.txt"
+                },
                 "recommendation": self._get_recommendation()
             }
             
@@ -373,8 +449,13 @@ class RuleProcessor:
         if self.stats['update_status'] == 'updated':
             return {
                 "action": "use_new_rules",
-                "message": "规则已更新，建议使用新生成的规则文件",
-                "priority": "high"
+                "message": "规则已更新，建议使用新生成的三格式规则文件",
+                "priority": "high",
+                "file_recommendation": {
+                    "browser_use": "使用 dist/Adblock.txt 订阅到浏览器广告拦截器",
+                    "system_use": "使用 dist/hosts.txt 添加到系统hosts文件",
+                    "dns_use": "使用 dist/Domains.txt 配置到DNS过滤工具"
+                }
             }
         elif self.stats['update_status'] == 'no_change':
             return {
@@ -391,7 +472,7 @@ class RuleProcessor:
         else:
             return {
                 "action": "review",
-                "message": "处理完成，请检查规则文件",
+                "message": "处理完成，请检查三种格式的规则文件",
                 "priority": "medium"
             }
     
@@ -402,18 +483,20 @@ class RuleProcessor:
             md_file = f"stats/report_{timestamp}.md"
             
             with open(md_file, 'w', encoding='utf-8') as f:
-                f.write(f"# 广告规则处理报告\n\n")
+                f.write(f"# 广告规则处理报告 (三格式输出)\n\n")
                 f.write(f"**生成时间**: {stats_data['processing_info']['end_time']}\n")
-                f.write(f"**状态**: {stats_data['processing_info']['update_status']}\n\n")
+                f.write(f"**状态**: {stats_data['processing_info']['update_status']}\n")
+                f.write(f"**输出文件**: [Adblock.txt](dist/Adblock.txt), [hosts.txt](dist/hosts.txt), [Domains.txt](dist/Domains.txt)\n\n")
                 
                 f.write(f"## 📊 处理概览\n\n")
                 f.write(f"- **开始时间**: {stats_data['processing_info']['start_time']}\n")
                 f.write(f"- **结束时间**: {stats_data['processing_info']['end_time']}\n")
                 f.write(f"- **总耗时**: {stats_data['processing_info']['total_duration_seconds']} 秒\n\n")
                 
-                f.write(f"## 📈 规则统计\n\n")
-                f.write(f"- **Adblock规则**: {stats_data['rules_summary']['adblock_rules']} 条\n")
-                f.write(f"- **Hosts规则**: {stats_data['rules_summary']['hosts_entries']} 个\n")
+                f.write(f"## 📈 规则统计 (三格式)\n\n")
+                f.write(f"- **Adblock规则**: {stats_data['rules_summary']['adblock_rules']} 条 (浏览器广告拦截器兼容)\n")
+                f.write(f"- **Hosts规则**: {stats_data['rules_summary']['hosts_entries']} 个 (系统hosts文件兼容)\n")
+                f.write(f"- **纯域名**: {stats_data['rules_summary']['domains']} 个 (DNS/防火墙规则兼容)\n")
                 f.write(f"- **总计**: {stats_data['rules_summary']['total_processed']} 条规则\n\n")
                 
                 f.write(f"## 🌐 规则源状态\n\n")
@@ -422,8 +505,19 @@ class RuleProcessor:
                 f.write(f"- **失败获取**: {stats_data['sources_summary']['failed']}\n")
                 f.write(f"- **成功率**: {stats_data['sources_summary']['success_rate']}%\n\n")
                 
+                f.write(f"## 📁 输出文件\n\n")
+                f.write(f"1. **Adblock.txt** - Adblock-style语法，适用于uBlock Origin等浏览器插件\n")
+                f.write(f"2. **hosts.txt** - /etc/hosts语法，适用于系统hosts文件\n")
+                f.write(f"3. **Domains.txt** - 纯域名列表，适用于DNS过滤\n\n")
+                
                 f.write(f"## 💡 建议\n\n")
                 f.write(f"{stats_data['recommendation']['message']}\n")
+                
+                if 'file_recommendation' in stats_data['recommendation']:
+                    f.write(f"\n**使用建议**:\n")
+                    for key, suggestion in stats_data['recommendation']['file_recommendation'].items():
+                        f.write(f"- {suggestion}\n")
+                
                 f.write(f"\n**优先级**: {stats_data['recommendation']['priority']}\n")
                 f.write(f"\n**建议操作**: {stats_data['recommendation']['action']}\n")
             
@@ -448,7 +542,10 @@ def verify_configuration():
         # 检查前几个URL格式
         print("📋 规则源示例:")
         for i, url in enumerate(all_sources[:3], 1):
-            print(f"  {i}. {url}")
+            # 简单美化显示，截取域名部分
+            from urllib.parse import urlparse
+            domain = urlparse(url).netloc
+            print(f"  {i}. [{domain}]")
         if len(all_sources) > 3:
             print(f"  ... 还有 {len(all_sources) - 3} 个规则源")
         
@@ -456,12 +553,14 @@ def verify_configuration():
         
     except Exception as e:
         print(f"❌ 配置验证失败: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def main():
     """主函数"""
     print("=" * 60)
-    print("🤖 智能广告规则自动化处理系统")
+    print("🤖 智能广告规则自动化处理系统 (三格式输出版)")
     print("=" * 60)
     
     # 验证配置
