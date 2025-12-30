@@ -1,0 +1,160 @@
+{
+  "processing_info": {
+    "start_time": "2025-12-30 13:27:17",
+    "end_time": "2025-12-30 13:27:20",
+    "total_duration_seconds": 2.86,
+    "update_status": "updated",
+    "shanghai_timezone": true
+  },
+  "rules_summary": {
+    "adblock_rules": 71652,
+    "hosts_entries": 368454,
+    "domains": 369280,
+    "total_processed": 809386
+  },
+  "sources_summary": {
+    "total_sources": 10,
+    "successful": 10,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "source_details": {
+    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
+      "status": "success",
+      "lines": 1020,
+      "time_seconds": 0.12,
+      "size_bytes": 27697
+    },
+    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resource-abuse.txt": {
+      "status": "success",
+      "lines": 200,
+      "time_seconds": 0.12,
+      "size_bytes": 7956
+    },
+    "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt": {
+      "status": "success",
+      "lines": 2705,
+      "time_seconds": 0.16,
+      "size_bytes": 43616
+    },
+    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt": {
+      "status": "success",
+      "lines": 11465,
+      "time_seconds": 0.18,
+      "size_bytes": 493072
+    },
+    "https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt": {
+      "status": "success",
+      "lines": 42542,
+      "time_seconds": 0.2,
+      "size_bytes": 1354227
+    },
+    "https://raw.githubusercontent.com/vokins/yhosts/master/data/tvbox.txt": {
+      "status": "success",
+      "lines": 138,
+      "time_seconds": 0.21,
+      "size_bytes": 3876
+    },
+    "https://someonewhocares.org/hosts/zero/hosts": {
+      "status": "success",
+      "lines": 12140,
+      "time_seconds": 0.21,
+      "size_bytes": 330689
+    },
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
+      "status": "success",
+      "lines": 93595,
+      "time_seconds": 0.23,
+      "size_bytes": 2574324
+    },
+    "https://easylist.to/easylist/easylist.txt": {
+      "status": "success",
+      "lines": 82035,
+      "time_seconds": 0.24,
+      "size_bytes": 2098229
+    },
+    "https://raw.githubusercontent.com/notracking/hosts-blocklists/master/hostnames.txt": {
+      "status": "success",
+      "lines": 500367,
+      "time_seconds": 0.35,
+      "size_bytes": 17939200
+    }
+  },
+  "rules_by_source": {
+    "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
+      "adblock": 834,
+      "hosts": 0,
+      "domains": 0,
+      "total": 834
+    },
+    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resource-abuse.txt": {
+      "adblock": 56,
+      "hosts": 0,
+      "domains": 0,
+      "total": 56
+    },
+    "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt": {
+      "adblock": 0,
+      "hosts": 0,
+      "domains": 2701,
+      "total": 2701
+    },
+    "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt": {
+      "adblock": 5276,
+      "hosts": 0,
+      "domains": 0,
+      "total": 5276
+    },
+    "https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt": {
+      "adblock": 0,
+      "hosts": 42358,
+      "domains": 42244,
+      "total": 84602
+    },
+    "https://raw.githubusercontent.com/vokins/yhosts/master/data/tvbox.txt": {
+      "adblock": 0,
+      "hosts": 125,
+      "domains": 125,
+      "total": 250
+    },
+    "https://someonewhocares.org/hosts/zero/hosts": {
+      "adblock": 0,
+      "hosts": 11037,
+      "domains": 10595,
+      "total": 21632
+    },
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
+      "adblock": 0,
+      "hosts": 72049,
+      "domains": 70816,
+      "total": 142865
+    },
+    "https://easylist.to/easylist/easylist.txt": {
+      "adblock": 65486,
+      "hosts": 0,
+      "domains": 0,
+      "total": 65486
+    },
+    "https://raw.githubusercontent.com/notracking/hosts-blocklists/master/hostnames.txt": {
+      "adblock": 0,
+      "hosts": 242885,
+      "domains": 242799,
+      "total": 485684
+    }
+  },
+  "output_files": {
+    "adblock": "dist/Adblock.txt",
+    "hosts": "dist/hosts.txt",
+    "domains": "dist/Domains.txt"
+  },
+  "recommendation": {
+    "action": "use_new_rules",
+    "message": "规则已更新，建议使用新生成的三格式规则文件",
+    "priority": "high",
+    "file_recommendation": {
+      "browser_use": "使用 dist/Adblock.txt 订阅到浏览器广告拦截器",
+      "system_use": "使用 dist/hosts.txt 添加到系统hosts文件",
+      "dns_use": "使用 dist/Domains.txt 配置到DNS过滤工具"
+    }
+  }
+}
