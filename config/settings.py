@@ -10,32 +10,35 @@ class Config:
     REPO_NAME = "ad-rule-automation"
     
     # ===【实战优化】关键配置 ===
-    MAX_WORKERS = 3                     # 进一步降低到3，避免GitHub Actions限制
-    REQUEST_TIMEOUT = 10                # 大幅降低到10秒，快速失败
-    MAX_RULES_PER_TYPE = 150000         # 限制最大规则数，防止内存爆炸
+    MAX_WORKERS = 3
+    REQUEST_TIMEOUT = 10
+    MAX_RULES_PER_TYPE = 150000
+    MAX_TOTAL_RULES = 500000
     
-    # ===【实战优化】缓存配置 ===
+    # ===【缓存配置】===
     CACHE_ENABLED = True
     CACHE_DIR = os.path.join(os.path.dirname(__file__), '..', '.cache')
-    CACHE_EXPIRE_HOURS = 72             # 缓存延长到72小时
+    CACHE_EXPIRE_HOURS = 72
     
-    # ===【新增】性能安全配置 ===
-    ENABLE_PERFORMANCE_LIMITS = True    # 启用性能限制
-    MAX_TOTAL_RULES = 500000            # 总规则数上限
-    SKIP_SLOW_SOURCES = True            # 跳过慢速源
-    TIMEOUT_FORCE_STOP = 1200           # 20分钟后强制停止（秒）
+    # ===【性能安全配置】===
+    SKIP_SLOW_SOURCES = True
+    TIMEOUT_FORCE_STOP = 1200
     
-    # ===【实战优化】规则自查配置 ===
-    RULE_CHECK_ENABLED = False          # 先关闭自查，专注解决超时
-    RULE_CHECK_SAMPLE_PERCENT = 1       # 如果启用，只抽样1%
+    # ===【规则自查】===
+    RULE_CHECK_ENABLED = False
+    RULE_CHECK_SAMPLE_PERCENT = 1
+    RULE_CHECK_TIMEOUT = 3
+    RULE_CHECK_CONCURRENCY = 3
+    RULE_CHECK_MIN_SAMPLE = 20
+    RULE_CHECK_MAX_SAMPLE = 100
     
-    # 输出配置
+    # 输出目录
     OUTPUT_DIR = "dist"
     STATS_DIR = "stats"
     BACKUP_DIR = "backups"
     CHECK_DIR = "checks"
     
-    # 规则优先级关键词（保持不变）
+    # 规则关键词
     HIGH_PRIORITY_KEYWORDS = [
         'ad', 'ads', 'advert', 'track', 'tracker', 'analytics',
         'click', 'banner', 'popup', 'sponsor', 'affiliate'
@@ -46,26 +49,24 @@ class Config:
         'metrics', 'pixel', 'beacon', 'cookie'
     ]
     
-    # 文件命名格式
+    # 文件格式
     FILE_FORMATS = {
         'adblock': 'Adblock.txt',
         'hosts': 'hosts.txt',
         'domains': 'Domains.txt',
-        'stats': 'stats_{date}.json'
+        'stats': 'stats_{date}.json',
+        'check': 'rule_check_{date}.json'
     }
     
-    # 支持的规则类型
+    # 规则类型
     RULE_TYPES = ['adblock', 'hosts', 'domain']
     
-    # 更新频率（Cron表达式）
-    UPDATE_SCHEDULE = '0 2 * * *'
-    
-    # ===【新增】已知问题源黑名单 ===
+    # 慢速源黑名单
     SLOW_SOURCES_BLACKLIST = [
-        'someonewhocares.org',          # 已知慢速源
-        'pgl.yoyo.org',                 # 已知慢速源
-        'hosts-file.net',               # 已知慢速源
-        'winhelp2002.mvps.org',         # 已知慢速源
+        'someonewhocares.org',
+        'pgl.yoyo.org',
+        'hosts-file.net',
+        'winhelp2002.mvps.org',
     ]
     
     @staticmethod
@@ -76,94 +77,54 @@ class Config:
     def get_current_date():
         return datetime.now().strftime("%Y%m%d")
 
-# ==================== 配置加载函数 ====================
 def load_rule_sources_from_txt():
-    """
-    从 rule_sources.txt 文件加载规则源列表，自动过滤问题源
-    """
+    """从 rule_sources.txt 加载规则源"""
     txt_path = os.path.join(os.path.dirname(__file__), 'rule_sources.txt')
     yaml_path = os.path.join(os.path.dirname(__file__), 'rule_sources.yaml')
     
-    file_to_load = None
+    file_to_load = txt_path if os.path.exists(txt_path) else yaml_path if os.path.exists(yaml_path) else None
     
-    # 确定加载哪个文件
-    if os.path.exists(txt_path):
-        file_to_load = txt_path
-    elif os.path.exists(yaml_path):
-        file_to_load = yaml_path
-        print(f"⚠️  发现旧版 rule_sources.yaml 文件，建议重命名为 rule_sources.txt")
-    else:
-        print(f"⚠️  警告：未找到配置文件 rule_sources.txt 或 rule_sources.yaml")
+    if not file_to_load:
+        print("⚠️  警告：未找到配置文件")
         return []
     
     urls = []
-    loaded_count = 0
-    skipped_count = 0
-    filtered_count = 0
+    loaded = 0
+    filtered = 0
     
     try:
         with open(file_to_load, 'r', encoding='utf-8') as f:
             for line_num, line in enumerate(f, 1):
-                original_line = line.rstrip('\n\r')
-                line = original_line.strip()
-                
-                # 跳过空行
-                if not line:
-                    continue
-                    
-                # 跳过以#开头的注释行
-                if line.startswith('#'):
+                line = line.strip()
+                if not line or line.startswith('#'):
                     continue
                 
-                # 去除字符串首尾的双引号或单引号
                 line = line.strip('"').strip("'")
-                
-                # 去除行尾的注释（#之后的内容）
                 if '#' in line:
                     line = line.split('#')[0].strip()
                 
-                # 检查是否是已知慢速源
-                skip_source = False
+                # 过滤慢速源
                 if Config.SKIP_SLOW_SOURCES:
-                    for blacklist_domain in Config.SLOW_SOURCES_BLACKLIST:
-                        if blacklist_domain in line:
-                            print(f"  ⚡ 跳过已知慢速源: {line}")
-                            filtered_count += 1
-                            skip_source = True
+                    skip = False
+                    for blacklist in Config.SLOW_SOURCES_BLACKLIST:
+                        if blacklist in line:
+                            filtered += 1
+                            skip = True
                             break
+                    if skip:
+                        continue
                 
-                if skip_source:
-                    continue
-                
-                # 最终检查：行不能为空，且应包含点号（简易URL检查）
                 if line and '.' in line:
                     urls.append(line)
-                    loaded_count += 1
-                else:
-                    print(f"  ⚠️ 第 {line_num} 行内容无效，已跳过: {original_line[:60]}")
-                    skipped_count += 1
+                    loaded += 1
         
-        print(f"✅ 已从 {os.path.basename(file_to_load)} 加载 {loaded_count} 个规则源")
-        if skipped_count > 0:
-            print(f"⚠️  跳过了 {skipped_count} 个无效行")
-        if filtered_count > 0:
-            print(f"⚡ 过滤了 {filtered_count} 个已知慢速源")
-        
-        # 如果源太多，自动截取前100个（防止超时）
-        if Config.ENABLE_PERFORMANCE_LIMITS and len(urls) > 100:
-            print(f"⚠️  规则源过多 ({len(urls)}个)，自动截取前100个")
-            urls = urls[:100]
-        
-        return urls
+        print(f"✅ 已加载 {loaded} 个规则源，过滤 {filtered} 个慢速源")
+        return urls[:100] if len(urls) > 100 else urls
         
     except Exception as e:
-        print(f"❌ 读取配置文件失败: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ 读取失败: {e}")
         return []
 
-# ==================== 动态生成默认规则源 ====================
-# 加载规则源列表
 SOURCE_URLS = load_rule_sources_from_txt()
 
 if SOURCE_URLS:
@@ -172,9 +133,8 @@ if SOURCE_URLS:
         'hosts': [],
         'domain': []
     }
-    print(f"✅ 配置解析完成，共 {len(SOURCE_URLS)} 个规则源。")
+    print(f"✅ 配置完成: {len(SOURCE_URLS)} 个规则源")
 else:
-    print("⚠️  配置文件为空或读取失败，使用内置默认规则源")
     DEFAULT_RULE_SOURCES = {
         'adblock': [
             "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt",
@@ -185,28 +145,20 @@ else:
         'domain': []
     }
 
-# ==================== 辅助函数 ====================
 def get_rule_sources():
-    """获取规则源字典（兼容旧代码）"""
     return DEFAULT_RULE_SOURCES
 
 def get_sources_by_type(source_type):
-    """按类型获取规则源"""
     return DEFAULT_RULE_SOURCES.get(source_type, [])
 
 def get_all_sources():
-    """
-    获取所有规则源URL的扁平列表。
-    这是主脚本 smart_rule_processor.py 调用的核心函数。
-    """
     return SOURCE_URLS
 
-# ==================== 初始化检查 ====================
 if __name__ == "__main__":
-    print("配置模块自检:")
+    print("配置自检:")
     urls = get_all_sources()
-    print(f"- 加载的规则源数量: {len(urls)}")
+    print(f"- 规则源: {len(urls)} 个")
     if urls:
-        print("- 前5个规则源:")
-        for i, url in enumerate(urls[:5], 1):
+        print("- 示例:")
+        for i, url in enumerate(urls[:3], 1):
             print(f"  {i}. {url}")
