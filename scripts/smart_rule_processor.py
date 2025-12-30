@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-智能广告规则处理系统 - TXT配置版
-生成 Adblock.txt, hosts.txt, Domains.txt 三种格式的规则
+智能广告规则处理系统 - 智能去重与优化版
+生成 Adblock.txt, hosts.txt, Domains.txt 三种格式的规则，带智能去重和优化
 """
 
 import os
 import sys
 
-# 添加项目根目录到Python路径，确保可以导入config模块
+# 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
@@ -23,6 +23,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Set, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import defaultdict
 
 try:
     import requests
@@ -72,7 +73,7 @@ class RuleFetcher:
         session.mount("https://", adapter)
         
         session.headers.update({
-            'User-Agent': 'AdRuleAutomation/3.0',
+            'User-Agent': 'AdRuleAutomation/4.0',
             'Accept': 'text/plain, */*',
         })
         
@@ -107,11 +108,165 @@ class RuleFetcher:
             }
             return False, None, 0
 
+class RuleOptimizer:
+    """规则优化器 - 提供智能去重和优化功能"""
+    
+    @staticmethod
+    def deduplicate_adblock_rules(rules: Set[str]) -> Set[str]:
+        """智能去重Adblock规则"""
+        if not rules:
+            return set()
+        
+        print(f"  正在对 {len(rules)} 条Adblock规则进行智能去重...")
+        
+        # 1. 基本去重（基于字符串完全匹配）
+        unique_rules = set(rules)
+        print(f"    基本去重后: {len(unique_rules)} 条")
+        
+        # 2. 域名级去重：提取规则中的域名，去除重复域名的不同变体
+        domain_to_rules = defaultdict(set)
+        optimized_rules = set()
+        removed_count = 0
+        
+        for rule in unique_rules:
+            domain = RuleOptimizer._extract_domain_from_adblock_rule(rule)
+            if domain:
+                # 如果这个域名已经有规则了，检查是否有更通用的规则
+                existing_rules = domain_to_rules.get(domain, set())
+                if existing_rules:
+                    # 检查新规则是否比现有规则更具体或更通用
+                    should_add = True
+                    for existing_rule in existing_rules:
+                        # 如果新规则更通用，替换旧规则
+                        if RuleOptimizer._is_more_general_rule(rule, existing_rule):
+                            optimized_rules.remove(existing_rule)
+                            domain_to_rules[domain].remove(existing_rule)
+                            removed_count += 1
+                            break
+                        # 如果新规则更具体，跳过
+                        elif RuleOptimizer._is_more_specific_rule(rule, existing_rule):
+                            should_add = False
+                            removed_count += 1
+                            break
+                    
+                    if should_add:
+                        optimized_rules.add(rule)
+                        domain_to_rules[domain].add(rule)
+                else:
+                    optimized_rules.add(rule)
+                    domain_to_rules[domain].add(rule)
+            else:
+                optimized_rules.add(rule)
+        
+        print(f"    智能去重后: {len(optimized_rules)} 条 (移除了 {removed_count} 条冗余规则)")
+        return optimized_rules
+    
+    @staticmethod
+    def _extract_domain_from_adblock_rule(rule: str) -> Optional[str]:
+        """从Adblock规则中提取域名"""
+        # 处理常见的Adblock语法
+        if rule.startswith('||'):
+            # ||example.com^
+            match = re.match(r'^\|\|([a-zA-Z0-9.*-]+)\^', rule)
+            if match:
+                return match.group(1)
+        elif rule.startswith('|'):
+            # |https://example.com/
+            match = re.match(r'^\|(?:https?://)?([a-zA-Z0-9.*-]+)', rule)
+            if match:
+                return match.group(1)
+        elif '##' in rule:
+            # example.com##selector
+            parts = rule.split('##')
+            if len(parts) == 2:
+                return parts[0].strip()
+        return None
+    
+    @staticmethod
+    def _is_more_general_rule(rule1: str, rule2: str) -> bool:
+        """检查rule1是否比rule2更通用"""
+        # 简单的启发式规则：通配符更多或更短通常更通用
+        if '*' in rule1 and '*' not in rule2:
+            return True
+        if rule1.startswith('||') and not rule2.startswith('||'):
+            return True
+        return False
+    
+    @staticmethod
+    def _is_more_specific_rule(rule1: str, rule2: str) -> bool:
+        """检查rule1是否比rule2更具体"""
+        # 相反的启发式
+        if '*' not in rule1 and '*' in rule2:
+            return True
+        if not rule1.startswith('||') and rule2.startswith('||'):
+            return True
+        return False
+    
+    @staticmethod
+    def deduplicate_hosts_entries(entries: Set[str]) -> Set[str]:
+        """去重Hosts条目"""
+        if not entries:
+            return set()
+        
+        print(f"  正在对 {len(entries)} 个Hosts条目进行去重...")
+        
+        # 基于域名的去重：每个域名只保留一个条目（优先0.0.0.0）
+        domain_to_entry = {}
+        duplicates_removed = 0
+        
+        for entry in entries:
+            parts = entry.split()
+            if len(parts) >= 2:
+                ip, domain = parts[0], parts[1]
+                if domain in domain_to_entry:
+                    duplicates_removed += 1
+                    # 优先保留0.0.0.0而不是127.0.0.1
+                    existing_ip = domain_to_entry[domain].split()[0]
+                    if existing_ip == '127.0.0.1' and ip == '0.0.0.0':
+                        domain_to_entry[domain] = entry
+                else:
+                    domain_to_entry[domain] = entry
+        
+        result = set(domain_to_entry.values())
+        print(f"    Hosts去重后: {len(result)} 个 (移除了 {duplicates_removed} 个重复域名)")
+        return result
+    
+    @staticmethod
+    def deduplicate_domains(domains: Set[str]) -> Set[str]:
+        """去重域名"""
+        if not domains:
+            return set()
+        
+        print(f"  正在对 {len(domains)} 个域名进行去重...")
+        
+        # 基本去重
+        unique_domains = set(domains)
+        
+        # 移除子域名如果父域名已存在（可选）
+        optimized_domains = set()
+        removed_subdomains = 0
+        
+        for domain in sorted(unique_domains, key=len, reverse=True):
+            # 检查是否是其他域名的子域名
+            is_subdomain = False
+            for other_domain in optimized_domains:
+                if domain.endswith('.' + other_domain):
+                    is_subdomain = True
+                    removed_subdomains += 1
+                    break
+            
+            if not is_subdomain:
+                optimized_domains.add(domain)
+        
+        print(f"    域名去重后: {len(optimized_domains)} 个 (移除了 {removed_subdomains} 个子域名)")
+        return optimized_domains
+
 class RuleProcessor:
-    """规则处理器 - 支持三格式输出"""
+    """规则处理器 - 增强版，包含智能去重"""
     
     def __init__(self):
         self.fetcher = RuleFetcher()
+        self.optimizer = RuleOptimizer()
         self.adblock_rules = set()
         self.hosts_entries = set()
         self.domains_set = set()
@@ -144,13 +299,18 @@ class RuleProcessor:
             'total_duration': 0,
             'rules_processed': 0,
             'rules_by_source': {},
+            'duplicates_removed': {
+                'adblock': 0,
+                'hosts': 0,
+                'domains': 0
+            },
             'update_status': 'no_change'
         }
     
     def process_rules(self) -> bool:
         """处理所有规则"""
         print("=" * 60)
-        print("🔄 开始处理广告规则")
+        print("🔄 开始处理广告规则（智能去重版）")
         print(f"📅 当前上海时间: {get_time_string()}")
         print(f"📊 规则源总数: {len(self.rule_sources)} 个")
         print("=" * 60)
@@ -193,6 +353,27 @@ class RuleProcessor:
         for url, content in contents.items():
             self._parse_content(content, url)
         
+        print(f"\n🧹 开始智能去重和优化...")
+        
+        # 记录去重前的数量
+        before_dedup = {
+            'adblock': len(self.adblock_rules),
+            'hosts': len(self.hosts_entries),
+            'domains': len(self.domains_set)
+        }
+        
+        # 应用智能去重
+        self.adblock_rules = self.optimizer.deduplicate_adblock_rules(self.adblock_rules)
+        self.hosts_entries = self.optimizer.deduplicate_hosts_entries(self.hosts_entries)
+        self.domains_set = self.optimizer.deduplicate_domains(self.domains_set)
+        
+        # 记录去重效果
+        self.stats['duplicates_removed'] = {
+            'adblock': before_dedup['adblock'] - len(self.adblock_rules),
+            'hosts': before_dedup['hosts'] - len(self.hosts_entries),
+            'domains': before_dedup['domains'] - len(self.domains_set)
+        }
+        
         self.stats['rules_processed'] = len(self.adblock_rules) + len(self.hosts_entries) + len(self.domains_set)
         
         current_counts = {
@@ -209,7 +390,7 @@ class RuleProcessor:
         else:
             self.stats['update_status'] = 'failed'
         
-        print(f"\n💾 保存规则文件...")
+        print(f"\n💾 保存优化后的规则文件...")
         success = self._save_results()
         
         elapsed_time = time.time() - start_timestamp
@@ -226,6 +407,9 @@ class RuleProcessor:
             print(f"📊 Adblock规则: {current_counts['adblock']} 条")
             print(f"📊 Hosts规则: {current_counts['hosts']} 个")
             print(f"📊 纯域名: {current_counts['domains']} 个")
+            print(f"📈 去重统计: {self.stats['duplicates_removed']['adblock']}条Adblock, "
+                  f"{self.stats['duplicates_removed']['hosts']}个Hosts, "
+                  f"{self.stats['duplicates_removed']['domains']}个域名")
             print(f"📈 规则源: {self.fetcher.stats['successful']}成功/{self.fetcher.stats['failed']}失败")
         else:
             print(f"❌ 处理失败")
@@ -248,29 +432,26 @@ class RuleProcessor:
                line.startswith('|') or \
                '##' in line or \
                (line.startswith('/') and line.endswith('/')):
-                if line not in self.adblock_rules:
-                    self.adblock_rules.add(line)
-                    counts['adblock'] += 1
+                self.adblock_rules.add(line)
+                counts['adblock'] += 1
             
             # 2. 识别Hosts规则
             elif re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+', line):
                 parts = line.split()
                 if len(parts) >= 2 and parts[0] in ['0.0.0.0', '127.0.0.1']:
                     rule = f"{parts[0]} {parts[1]}"
-                    if rule not in self.hosts_entries:
-                        self.hosts_entries.add(rule)
-                        counts['hosts'] += 1
+                    self.hosts_entries.add(rule)
+                    counts['hosts'] += 1
                     
                     domain = parts[1]
-                    if self._is_valid_domain(domain) and domain not in self.domains_set:
+                    if self._is_valid_domain(domain):
                         self.domains_set.add(domain)
                         counts['domains'] += 1
             
             # 3. 识别纯域名
             elif self._is_valid_domain(line):
-                if line not in self.domains_set:
-                    self.domains_set.add(line)
-                    counts['domains'] += 1
+                self.domains_set.add(line)
+                counts['domains'] += 1
         
         if any(counts.values()):
             self.stats['rules_by_source'][source_url] = counts
@@ -291,11 +472,13 @@ class RuleProcessor:
             current_time = get_time_string()
             
             # 1. 保存Adblock规则
-            with open("dist/Adblock.txt", 'w', encoding='utf-8') as f:
-                f.write(f"""! Adblock-style 规则
+            adblock_path = "dist/Adblock.txt"
+            with open(adblock_path, 'w', encoding='utf-8') as f:
+                f.write(f"""! Adblock-style 规则（智能去重优化版）
 ! 适用于 uBlock Origin, AdGuard, Adblock Plus 等浏览器插件
 ! 最后更新: {current_time}
-! 规则总数: {len(self.adblock_rules)}
+! 规则总数: {len(self.adblock_rules)} 条
+! 去重移除: {self.stats['duplicates_removed']['adblock']} 条重复规则
 ! 更新状态: {self.stats['update_status']}
 ! GitHub: https://github.com/wansheng8/ad-rule-automation
 !
@@ -303,14 +486,26 @@ class RuleProcessor:
 """)
                 for rule in sorted(self.adblock_rules):
                     f.write(f"{rule}\n")
-            print(f"  ✅ 保存Adblock规则: {len(self.adblock_rules)} 条 -> dist/Adblock.txt")
+            
+            # 检查文件大小
+            file_size = os.path.getsize(adblock_path)
+            file_size_mb = file_size / (1024 * 1024)
+            print(f"  ✅ 保存Adblock规则: {len(self.adblock_rules)} 条 -> dist/Adblock.txt ({file_size_mb:.2f} MB)")
+            
+            if file_size_mb > 90:
+                print(f"  ⚠️  警告: Adblock.txt 文件较大 ({file_size_mb:.2f} MB)")
+                print(f"  💡 建议: 如需进一步减小文件大小，可考虑:")
+                print(f"     1. 减少规则源数量")
+                print(f"     2. 启用规则压缩（可联系开发者启用）")
             
             # 2. 保存Hosts规则
-            with open("dist/hosts.txt", 'w', encoding='utf-8') as f:
-                f.write(f"""# /etc/hosts 语法规则
+            hosts_path = "dist/hosts.txt"
+            with open(hosts_path, 'w', encoding='utf-8') as f:
+                f.write(f"""# /etc/hosts 语法规则（智能去重优化版）
 # 适用于系统hosts文件、Pi-hole、AdGuard Home等
 # 最后更新: {current_time}
-# 规则总数: {len(self.hosts_entries)}
+# 规则总数: {len(self.hosts_entries)} 个
+# 去重移除: {self.stats['duplicates_removed']['hosts']} 个重复域名
 # 更新状态: {self.stats['update_status']}
 # GitHub: https://github.com/wansheng8/ad-rule-automation
 #
@@ -321,14 +516,17 @@ class RuleProcessor:
                 local_hosts = [h for h in sorted_hosts if h.startswith('127.0.0.1')]
                 for rule in zero_hosts + local_hosts:
                     f.write(f"{rule}\n")
+            
             print(f"  ✅ 保存Hosts规则: {len(self.hosts_entries)} 个 -> dist/hosts.txt")
             
             # 3. 保存纯域名列表
-            with open("dist/Domains.txt", 'w', encoding='utf-8') as f:
-                f.write(f"""# 纯域名列表
+            domains_path = "dist/Domains.txt"
+            with open(domains_path, 'w', encoding='utf-8') as f:
+                f.write(f"""# 纯域名列表（智能去重优化版）
 # 适用于DNS过滤、防火墙规则等
 # 最后更新: {current_time}
-# 域名总数: {len(self.domains_set)}
+# 域名总数: {len(self.domains_set)} 个
+# 去重移除: {self.stats['duplicates_removed']['domains']} 个重复域名
 # 更新状态: {self.stats['update_status']}
 # GitHub: https://github.com/wansheng8/ad-rule-automation
 #
@@ -336,6 +534,7 @@ class RuleProcessor:
 """)
                 for domain in sorted(self.domains_set):
                     f.write(f"{domain}\n")
+            
             print(f"  ✅ 保存纯域名列表: {len(self.domains_set)} 个 -> dist/Domains.txt")
             
             return True
@@ -366,6 +565,7 @@ class RuleProcessor:
                     "domains": len(self.domains_set),
                     "total_processed": self.stats['rules_processed']
                 },
+                "duplicates_removed": self.stats['duplicates_removed'],
                 "sources_summary": self.fetcher.stats,
                 "rules_by_source": self.stats['rules_by_source'],
                 "output_files": {
@@ -391,7 +591,7 @@ class RuleProcessor:
         try:
             md_file = f"stats/report_{timestamp}.md"
             with open(md_file, 'w', encoding='utf-8') as f:
-                f.write(f"# 广告规则处理报告\n\n")
+                f.write(f"# 广告规则处理报告（智能去重版）\n\n")
                 f.write(f"**生成时间**: {stats_data['processing_info']['end_time']}\n")
                 f.write(f"**状态**: {stats_data['processing_info']['update_status']}\n")
                 f.write(f"**输出文件**: [Adblock.txt](dist/Adblock.txt), [hosts.txt](dist/hosts.txt), [Domains.txt](dist/Domains.txt)\n\n")
@@ -400,11 +600,16 @@ class RuleProcessor:
                 f.write(f"- **总耗时**: {stats_data['processing_info']['total_duration_seconds']}秒\n")
                 f.write(f"- **规则源**: {stats_data['sources_summary']['successful']}成功/{stats_data['sources_summary']['failed']}失败\n\n")
                 
-                f.write(f"## 规则统计\n\n")
+                f.write(f"## 规则统计（去重后）\n\n")
                 f.write(f"- **Adblock规则**: {stats_data['rules_summary']['adblock_rules']}条\n")
                 f.write(f"- **Hosts规则**: {stats_data['rules_summary']['hosts_entries']}个\n")
                 f.write(f"- **纯域名**: {stats_data['rules_summary']['domains']}个\n")
-                f.write(f"- **总计**: {stats_data['rules_summary']['total_processed']}条规则\n")
+                f.write(f"- **总计**: {stats_data['rules_summary']['total_processed']}条规则\n\n")
+                
+                f.write(f"## 去重效果\n\n")
+                f.write(f"- **移除的Adblock重复规则**: {stats_data['duplicates_removed']['adblock']}条\n")
+                f.write(f"- **移除的Hosts重复域名**: {stats_data['duplicates_removed']['hosts']}个\n")
+                f.write(f"- **移除的域名重复**: {stats_data['duplicates_removed']['domains']}个\n")
             
             print(f"  📋 Markdown报告已保存: {md_file}")
         except Exception as e:
@@ -442,7 +647,7 @@ def verify_configuration():
 def main():
     """主函数"""
     print("=" * 60)
-    print("🤖 智能广告规则自动化处理系统 (TXT配置版)")
+    print("🤖 智能广告规则自动化处理系统 (智能去重版)")
     print("=" * 60)
     
     if not verify_configuration():
