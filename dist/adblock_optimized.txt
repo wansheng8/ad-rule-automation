@@ -1,6 +1,6 @@
 ! Adblock规则
-! 最后更新: 2025-12-30 04:45:53
-! 规则总数: 67239
+! 最后更新: 2025-12-30 11:23:10
+! 规则总数: 67314
 ! 更新状态: updated
 ! 
 ! 由智能广告规则处理系统生成
@@ -4527,6 +4527,7 @@ ganjingworld.com##.ggAdZone_gg-banner-ad_zone__wK3kF
 ganjingworld.com##.topAdsSection_wrapper__cgH4h
 garagejournal.com##.size-full.attachment-full
 garagejournal.com##.size-medium
+gardinerbryant.com##.he-partners
 garticphone.com##.jsx-2397783008
 garticphone.com##.jsx-3256658636
 gasbuddy.com###divSky
@@ -7238,6 +7239,7 @@ pastpapers.co##.sticky-bottom
 pasty.info##img[aria-label="Aliexpress partner network affiliate Link"]
 pasty.info##img[aria-label="Ebay partner network affiliate Link"]
 patents.justia.com##.jcard[style="min-height:280px; margin-bottom: 10px;"]
+patient.nimblerx.com###flt-pv-1 > div
 patio.so##[href="https://www.flexpowertools.com/"]
 patriotnewsfeed.com##.code-block-4
 patriotnewsfeed.com##.custom-html-widget [href] > [src]
@@ -11052,6 +11054,7 @@ zpaste.net##.uk-animation-shake
 ||1ts18.top^$all
 ||1ts19.top^
 ||1ul6b1692e993bxyc3bzhx7.cyou^
+||1v4wigcyhgjh4xug.rest^
 ||1vpuev9xcwniqw.cfd^
 ||1warie.com^$third-party
 ||1web.me^
@@ -12162,6 +12165,7 @@ zpaste.net##.uk-animation-shake
 ||7jrahgc.de^
 ||7jvituowzgpymhc1.rest^
 ||7lyonline.com^
+||7m4gy722jqb182cpgjxtjckjwy7.rest^
 ||7me0ssd6.de^
 ||7myg12irizuzf72q251tlbkeh97hy.rest^
 ||7ng6v3lu3c.execute-api.us-east-1.amazonaws.com^
@@ -12183,12 +12187,14 @@ zpaste.net##.uk-animation-shake
 ||80xmedia.com^
 ||81015449c0.com^
 ||8104863542.com^
+||812f3647c3.com^
 ||8162f6c343.com^
 ||819mng4kn6wybgg.cfd^
 ||81af8eb64e.com^
 ||81c875a340.com^
 ||821e113467.com^
 ||8231e5c33a.com^
+||82d36b5fc4.com^
 ||82nuo2y239fb81pvq.cfd^
 ||831f1e8aa9.com^
 ||8330bccb63.com^
@@ -12381,6 +12387,7 @@ zpaste.net##.uk-animation-shake
 ||96a3783f2f.com^
 ||96e7bee058.com^
 ||96ed2s9r.xyz^
+||96nqqugq67pox5k9mmpvmz1ex91hh.cfd^
 ||976caebe7b.com^
 ||97ce98c219.com^
 ||97lfib4ke1u2o7wte34kbzc.cfd^
@@ -15080,6 +15087,7 @@ zpaste.net##.uk-animation-shake
 ||amateurporn.net^$third-party
 ||amatevalutas.cyou^
 ||amatrck.com^$popup
+||amautcwt.com^
 ||amazing-dating.com^$popup
 ||amazingblackened.com^
 ||amazon-adsystem.com^
@@ -15520,6 +15528,7 @@ zpaste.net##.uk-animation-shake
 ||apercusbayok.rest^
 ||apertsorrowy.help^
 ||aperysked.com^
+||apetalycongest.rest^
 ||apetalycrazily.cfd^
 ||apex-ad.com^$third-party
 ||apexbhoosa.world^
@@ -17230,6 +17239,7 @@ zpaste.net##.uk-animation-shake
 ||bbtweswymiciw.site^
 ||bbuni.com^$popup
 ||bbuni.com^$third-party
+||bbvnumxgvpjpt.site^
 ||bbyoaowyljswd.site^
 ||bbztmceiyhybz.space^
 ||bc.coupons.com^
@@ -18948,6 +18958,7 @@ zpaste.net##.uk-animation-shake
 ||breitbart.com/t/assets/js/prebid
 ||breka.fit^
 ||bremiajos.cfd^
+||brendasambul.help^
 ||brendedankh.qpon^
 ||brene.site^
 ||bretncqhxzygz.website^
@@ -19041,6 +19052,7 @@ zpaste.net##.uk-animation-shake
 ||brokerbabe.com^
 ||bromingigaton.com^
 ||brominsarouser.cyou^
+||bromitepharian.help^
 ||bromoilnapalms.com^
 ||bronca.site^
 ||bronchiallonym.com^
@@ -19096,6 +19108,7 @@ zpaste.net##.uk-animation-shake
 ||brutishlylifevoicing.com^$popup
 ||brutuzzzymudq.world^
 ||bruytdsxajjey.site^
+||brxcioxve.com^
 ||brxwysvktxzja.site^
 ||brygella.com^
 ||bryny.xyz^
@@ -19116,6 +19129,7 @@ zpaste.net##.uk-animation-shake
 ||bservr.com^
 ||bsfeuihxrczte.space^
 ||bsfpmdtjxpmts.site^
+||bsgbcdzmvggpc.site^
 ||bsgbd77l.de^
 ||bshkktjevghcj.online^
 ||bshrdr.com^
@@ -20698,6 +20712,7 @@ zpaste.net##.uk-animation-shake
 ||chemicalssmuglyuntying.com^
 ||chengaib.net^
 ||cheniersamvat.cyou^
+||chepsoasteerda.net^
 ||cheqzone.com^
 ||cherdignain.net^
 ||cherieswailful.help^
@@ -21065,6 +21080,7 @@ zpaste.net##.uk-animation-shake
 ||ckaoqyxmwjhfz.online^
 ||ckbgvpjrjcwai.site^
 ||ckdehawsbpulg.xyz^
+||ckedbaajybz.com^
 ||ckfaconxrhyen.website^
 ||ckgroundan.org^
 ||ckhillulshshg.site^
@@ -21767,6 +21783,7 @@ zpaste.net##.uk-animation-shake
 ||commissionmonster.com^$third-party
 ||commitmentelizabeth.com^
 ||common-professional.pro^
+||commonsshakeup.cyou^
 ||commonvivacious.com^
 ||commonwealthproficient.com^
 ||commonwealthscenery.com^
@@ -22718,6 +22735,7 @@ zpaste.net##.uk-animation-shake
 ||cthin.site^
 ||ctlmvibd.net^
 ||ctm-media.com^
+||ctmjoiwibuskz.online^
 ||ctnsnet.com^
 ||ctnzjwecyluvg.online^
 ||ctogzfzrakjio.space^
@@ -26519,6 +26537,7 @@ zpaste.net##.uk-animation-shake
 ||dvxeqsgyabyvr.online^
 ||dvxrxm-cxo.top^
 ||dvymkekwkkgdi.space^
+||dvyowssjs.com^
 ||dvypar.com^
 ||dvzycytrxbxav.space^
 ||dw55pg05c2rl5.cloudfront.net^
@@ -27231,6 +27250,7 @@ zpaste.net##.uk-animation-shake
 ||egighbqdtgyen.rocks^
 ||egisesillite.com^
 ||egiwzbublefuq.online^
+||egjqqvtfmjwos.space^
 ||egjtmguxueesf.xyz^
 ||egleevegreemouw.net^
 ||egmjqaoequdsv.site^
@@ -27307,6 +27327,7 @@ zpaste.net##.uk-animation-shake
 ||eiohjvvxbbxsxa.xyz^
 ||eiotqjelvrceb.online^
 ||eiqtorbylietc.online^
+||eirackupwheel.qpon^
 ||eirxggijnfnto.space^
 ||eiteribesshaints.com^
 ||eiteribesshaints.com^$popup
@@ -27490,6 +27511,7 @@ zpaste.net##.uk-animation-shake
 ||eludmmaymbkgj.com^
 ||eluhlhjv.life^
 ||elusivesimagre.rest^
+||elutedaswen.qpon^
 ||elutokvgaclme.space^
 ||elwroycegbpei.website^
 ||elxont.com^$all
@@ -27634,6 +27656,7 @@ zpaste.net##.uk-animation-shake
 ||enbxweghgupsj.space^
 ||enbzcgwahnemk.site^
 ||encaumawhangam.cfd^
+||enchairywca.cyou^
 ||enchantbackfire.com^
 ||enchanted-fault.pro^
 ||enchanted-stretch.pro^
@@ -27944,6 +27967,7 @@ zpaste.net##.uk-animation-shake
 ||epyrrdvmibeh.com^
 ||epyykiftqkufp.space^
 ||eqads.com^
+||eqbbdarprjtiu.space^
 ||eqbkokxmxmyyg.space^
 ||eqbvnrotlkmmce.com^
 ||eqbwpekhukafn.website^
@@ -29180,6 +29204,7 @@ zpaste.net##.uk-animation-shake
 ||fepbjqnzphdxz.online^
 ||fepqwzejwtlmx.online^
 ||feqgpykeuppfi.space^
+||feqzeilmkntzj.online^
 ||fer2oxheou4nd.com^$popup
 ||ferfelruskin.qpon^
 ||feriaamaas.com^
@@ -29198,6 +29223,7 @@ zpaste.net##.uk-animation-shake
 ||ferrypoemet.com^
 ||ferterbyres.cfd^
 ||fertilehybridsstep.com^
+||fertilisedconductiveplank.com^
 ||ferukentaspects.com^
 ||fervcbytncxaj.icu^
 ||ferzgatzocmig.website^
@@ -29358,6 +29384,7 @@ zpaste.net##.uk-animation-shake
 ||fightmallowfiasco.com^
 ||figmyxaqjtoonrq.xyz^
 ||figuredworrying.com^
+||figvdxrpxreta.space^
 ||fiinnancesur.com^$popup
 ||fijimtadee.net^
 ||fikdjcxns.xyz^
@@ -29636,6 +29663,7 @@ zpaste.net##.uk-animation-shake
 ||flawerosion.com^
 ||flawgrandparentsmysterious.com^
 ||flawslightestvariability.com^
+||flawyapio.help^
 ||flayerrecross.help^
 ||flbem38kbc34zupx8en899yu6rl5n5y4vlm.cfd^
 ||flbhwgoibnoku.space^
@@ -30310,6 +30338,7 @@ zpaste.net##.uk-animation-shake
 ||frioencwksyur.website^
 ||frippettegmina.com^
 ||friscobarchan.help^
+||frisketcrane.rest^
 ||friskydoweral.com^
 ||frivol-ads.com^$third-party
 ||frivolous-wine.pro^
@@ -31441,6 +31470,7 @@ zpaste.net##.uk-animation-shake
 ||ggpbuvhzihxxh.website^
 ||ggreatshow.com^
 ||ggreatstuff.com^
+||ggrziczvzup.com^
 ||ggsfq.com^
 ||gguahaeezfeoi.space^
 ||ggutxhpths.net^
@@ -32524,6 +32554,7 @@ zpaste.net##.uk-animation-shake
 ||gripping-bread.com^
 ||gripsalrebsoali.net^
 ||gripspigyard.com^
+||griwaijusoumsi.com^
 ||griwourtadoothe.net^
 ||grizzled-doctor.pro^
 ||grizzledprogress.com^
@@ -34039,6 +34070,7 @@ zpaste.net##.uk-animation-shake
 ||hkzkxmhtxgpzx.online^
 ||hlbhzwrntodiv.website^
 ||hlboxgycwptixb.com^
+||hlbvlf5no9lz8rzvy.cfd^
 ||hlcbpaijmkgvd.online^
 ||hlcgyuuvlwgjs.website^
 ||hldijpffemu.net^
@@ -35881,6 +35913,7 @@ zpaste.net##.uk-animation-shake
 ||inkfeedmausoleum.com^
 ||inkinggodfrey.qpon^
 ||inkingleran.com^
+||inkingscarboys.cfd^
 ||inklaotqejnmh.online^
 ||inklinkor.com^
 ||inkosiarchsee.qpon^
@@ -36359,6 +36392,7 @@ zpaste.net##.uk-animation-shake
 ||ishbqnmriafnt.store^
 ||ishedbritings.com^
 ||ishoopteerie.net^
+||ishuaejlhqsfk.space^
 ||ishwakehjwnbr.store^
 ||isisomeoneintheworld.org^
 ||isiyrnziicvme.space^
@@ -38153,6 +38187,7 @@ zpaste.net##.uk-animation-shake
 ||keeflupin.cfd^
 ||keegeebuglee.net^
 ||keegoagrauptach.net^
+||keeicgfukasha.site^
 ||keekeeloostedu.com^
 ||keekersovulary.cfd^
 ||keen-eyed.dotabuff.com^
@@ -38779,6 +38814,7 @@ zpaste.net##.uk-animation-shake
 ||kpscanitwmnmf.site^
 ||kpsxmpevuhdwf.space^
 ||kptivfdlgtrtl.website^
+||kptnascbjdby.com^
 ||kpvilypxcybct.site^
 ||kpvlhacvplbci.site^
 ||kpxiqowgtraqeg.com^
@@ -39358,6 +39394,7 @@ zpaste.net##.uk-animation-shake
 ||lavfttpdcojeh.space^
 ||lavingflue.qpon^
 ||lavouzicamvvi.online^
+||lavtcyojffug.com^
 ||lawdepot.com/affiliate/$third-party
 ||lawfullygreater.com^
 ||lawfullylimetreecharges.com^
@@ -39918,6 +39955,7 @@ zpaste.net##.uk-animation-shake
 ||limatailsaib.net^
 ||limbacoaming.cyou^
 ||limbouswirer.cyou^
+||limited-bird.pro^
 ||limited-final.pro^
 ||limitespta.click^
 ||limitesrifer.com^
@@ -40411,6 +40449,7 @@ zpaste.net##.uk-animation-shake
 ||logicschort.com^
 ||logicschort.com^$popup
 ||logoffmegapod.qpon^
+||logwoodtairn.shop^
 ||lohhgxyjaxyfc.xyz^
 ||loijtoottuleringv.info^
 ||loinpriestinfected.com^
@@ -40542,6 +40581,7 @@ zpaste.net##.uk-animation-shake
 ||lousterknarl.help^
 ||lousyfastened.com^
 ||louthernavaids.qpon^
+||loutingpolynoe.shop^
 ||louverurnism.shop^
 ||louwhoriroud.net^
 ||louxoxo.com^
@@ -41553,6 +41593,7 @@ zpaste.net##.uk-animation-shake
 ||matzothdiane.com^
 ||mauholeroufouwy.net^
 ||maungychiders.click^
+||mauvesiceni.shop^
 ||mauvineinez.cyou^
 ||mauvovukouwha.com^
 ||mavamuwwnkksn.store^
@@ -41933,6 +41974,7 @@ zpaste.net##.uk-animation-shake
 ||membrana.media^$third-party
 ||memesng.com/ads
 ||memia.xyz^
+||memoirscenserssonar.cfd^
 ||memorableworth.com^
 ||menacehabit.com^
 ||menacermonilia.help^
@@ -44661,6 +44703,7 @@ zpaste.net##.uk-animation-shake
 ||nontraditionally.rest^$document
 ||nontraditionally.rest^$popup
 ||nooaiigptpszk.store^
+||noogoteptas.net^
 ||noohapou.com^
 ||noohapou.com^$document
 ||noohapou.com^$popup
@@ -45175,6 +45218,7 @@ zpaste.net##.uk-animation-shake
 ||nwwrtbbit.com^$document
 ||nwwrtbbit.com^$popup
 ||nwwtikpsbrgup.com^
+||nwxpsqhfecxsdg.com^
 ||nwxufrbavssrrm.com^
 ||nwyhkijcxnuuxuq.xyz^
 ||nwzbxcfmseiyv.space^
@@ -45807,6 +45851,7 @@ zpaste.net##.uk-animation-shake
 ||oheyffpqepntj.store^
 ||ohffs.com^
 ||ohfomiyhaok.com^
+||ohfyntjrbcgik.space^
 ||ohgbefqegvejj.store^
 ||ohghhuqkxzsnu.online^
 ||ohgopfah.com^
@@ -45820,6 +45865,7 @@ zpaste.net##.uk-animation-shake
 ||ohmygore.com/ef_pub
 ||ohndsplu.com^
 ||ohooftaux.net^
+||ohpovre7p9e6mt7.cfd^
 ||ohpvyvfpgp.xyz^
 ||ohqyvfinftokk.space^
 ||ohrdsplu.com^
@@ -46631,6 +46677,7 @@ zpaste.net##.uk-animation-shake
 ||ossfloetteor.com^$popup
 ||ossgogoaton.com^
 ||osshydreigonan.com^
+||ossifichesione.rest^
 ||ossificobeyer.cfd^
 ||ossmightyenar.net^
 ||ossmightyenar.net^$popup
@@ -49975,6 +50022,7 @@ zpaste.net##.uk-animation-shake
 ||psvyszwcjlflr.site^
 ||pswaplanat.digital^
 ||pswlsefuaueke.space^
+||psxffsykjrulv.online^
 ||psxruzkbucygp.online^
 ||psxsyzflvppte.space^
 ||psychiatricmagnet.com^
@@ -50045,6 +50093,7 @@ zpaste.net##.uk-animation-shake
 ||ptetsoaversaphi.com^
 ||ptewegleecha.net^
 ||ptfoplgnjmygh.store^
+||ptfoqdcfenssu.website^
 ||ptgbydghejqfz.online^
 ||ptgsroouwdsya.online^
 ||ptichoolsougn.net^
@@ -50505,6 +50554,7 @@ zpaste.net##.uk-animation-shake
 ||pxekfmmylcrqo.space^
 ||pxgvyiizzmgqr.site^
 ||pxhkjasvqquxo.online^
+||pxifipfx.com^
 ||pxitnvmyjqnqo.online^
 ||pxjopviuyw.net^
 ||pxjzwbzctenyf.website^
@@ -50999,6 +51049,7 @@ zpaste.net##.uk-animation-shake
 ||qmwkcavnwiibm.online^
 ||qmwonwowmytqf.store^
 ||qmyzawzrqrojv.top^
+||qmyzawzrqrooj.top^
 ||qmyzawzrqryjj.top^
 ||qmzikvkk.business^
 ||qn-5.com^
@@ -51367,6 +51418,7 @@ zpaste.net##.uk-animation-shake
 ||qvie2jqtezi86cu2xc3we5x5fyz.cfd^
 ||qvikar.com^
 ||qvipuowqkckun.website^
+||qvkweketjnnfu.space^
 ||qvlatpbizkile.site^
 ||qvmsvlpwksuaj.site^
 ||qvnpuwougsyug.website^
@@ -51411,6 +51463,7 @@ zpaste.net##.uk-animation-shake
 ||qwtag.com^
 ||qwtcmhgblnfeu.site^
 ||qwtcmmvrjwujs.net^
+||qwubjdcxzwwpw.site^
 ||qwvqbeqorrobv.top^
 ||qwvqbeqorrqvv.top^
 ||qwvqbeqorrqyz.top^
@@ -52003,6 +52056,7 @@ zpaste.net##.uk-animation-shake
 ||reblessideals.shop^
 ||reboantzarf.com^
 ||reboardwhoop.cfd^
+||reboilstourly.rest^
 ||rebootsormers.com^
 ||rebosatopepo.rest^
 ||rebosogabby.cyou^
@@ -52172,6 +52226,7 @@ zpaste.net##.uk-animation-shake
 ||reedsbullyingpastel.com^
 ||reedsinterfering.com^
 ||reedthatm.biz^
+||reeferbesouthcalando.cyou^
 ||reegloovaimi.net^
 ||reegreekish.net^
 ||reegroagri.net^
@@ -53482,6 +53537,7 @@ zpaste.net##.uk-animation-shake
 ||rrobbybmkwjww.top^
 ||rrokfezlcfilh.online^
 ||rrpcjhtacwgki.space^
+||rrpuoifwzxgkh.site^
 ||rrqbphiebfjkr.website^
 ||rrqwarwrewbyy.top^
 ||rrqwarwrewlbj.top^
@@ -53614,6 +53670,7 @@ zpaste.net##.uk-animation-shake
 ||rtyvjshyvdagg.space^
 ||rtyznd.com^
 ||rtyznd.com^$popup
+||ru5ppovxbk7jq583uh92.rest^
 ||ru8ybbtr5fkpx3gfqv2zonzckmwl26yql91.cfd^
 ||ruacpkdfrhyun.site^
 ||ruamupr.com^
@@ -53854,6 +53911,7 @@ zpaste.net##.uk-animation-shake
 ||ryknsblynbifq.store^
 ||ryminos.com^
 ||rymuchadmiredit.org^
+||ryqolhuncilzy.online^
 ||ryqrqhksip.xyz^
 ||ryretyequiremuk.com^
 ||ryrrcknudbxsb.website^
@@ -54457,6 +54515,7 @@ zpaste.net##.uk-animation-shake
 ||sdcgnlnlnlayq.store^
 ||sddan.com^
 ||sddsxniaxkygh.online^
+||sdeukvltno.com^
 ||sdfotdukrsehw.website^
 ||sdfsdvc.com^
 ||sdftjepmiwcwq.space^
@@ -54650,6 +54709,7 @@ zpaste.net##.uk-animation-shake
 ||segaryamun.shop^
 ||segeolia.com^
 ||segetalbirder.click^
+||seggromwy.cfd^
 ||seggzpwzesnxh.website^
 ||segmentnext.com/LhfdY3JSwVQ8.js
 ||segohor.rest^
@@ -54789,6 +54849,7 @@ zpaste.net##.uk-animation-shake
 ||sermfhdkrupwy.store^
 ||sermonaudio.com/images/sponsors/
 ||sermonsbleeder.top^
+||serousunhitch.click^
 ||serpentinefeed.com^
 ||serpentinelow.com^
 ||sersabion.com^
@@ -55892,6 +55953,7 @@ zpaste.net##.uk-animation-shake
 ||smugpsstplus.com^
 ||smutgamer.com/ta2b8ed9c305.js
 ||smutty.com/n.js
+||smvmpfcncwitt.online^
 ||smvuueqonsbuz.site^
 ||smvuvscjqofbm.website^
 ||smxpdgbfvoexq.site^
@@ -55946,6 +56008,7 @@ zpaste.net##.uk-animation-shake
 ||snieshurdies.life^
 ||sniffingtransient.com^
 ||sniffvivacious.com^
+||sniftrubes.qpon^
 ||snigelweb.com^$third-party
 ||snipercentral.com/images/banners/
 ||sniperiffian.shop^
@@ -56273,6 +56336,7 @@ zpaste.net##.uk-animation-shake
 ||spaitimpower.com^
 ||spamimpunity.com^
 ||spanceldeodand.rest^
+||spanecentric.click^
 ||spaniardinformationbookworm.com^
 ||spankmasters.com^$third-party
 ||spannerbrewinghalfyear.com^
@@ -60039,6 +60103,7 @@ zpaste.net##.uk-animation-shake
 ||tucwydhulyyuk.net^
 ||tudelwarmest.shop^
 ||tudrrynzkocdq.website^
+||tuduenecxvgkd.com^
 ||tuesdayfetidlit.com^
 ||tuesdaypeas.com^
 ||tufaaijqffzug.site^
@@ -60280,6 +60345,7 @@ zpaste.net##.uk-animation-shake
 ||tylosisscotize.cyou^
 ||tylulewe.com^
 ||tymdzzpyxbuzq.website^
+||tympbelat.click^
 ||tynt.com^
 ||typablehoist.qpon^
 ||typalbummie.cfd^
@@ -61161,6 +61227,7 @@ zpaste.net##.uk-animation-shake
 ||uod2quk646.com^
 ||uodywypnuvzwl.online^
 ||uoenkcbxwumqh.xyz^
+||uofsfhpe.com^
 ||uohsqzovikvyr.online^
 ||uohygjhhmwcco.site^
 ||uojlmgocfywmq.site^
@@ -61462,6 +61529,7 @@ zpaste.net##.uk-animation-shake
 ||utbxvmsgpcznb.fun^
 ||utdljcqqexowo.store^
 ||uteassewer.qpon^
+||utecxhdkdnlrjk.xyz^
 ||uteriaptotic.cyou^
 ||utgowgfs.com^
 ||utgpsiesiotbx.website^
@@ -61547,6 +61615,7 @@ zpaste.net##.uk-animation-shake
 ||uvuawvcjpiyzt.online^
 ||uvulacoil.qpon^
 ||uvularcimelia.click^
+||uvwoqkhusxlhqjo.xyz^
 ||uwahagoyvuccd.website^
 ||uwamtkhzhlpyl.online^
 ||uwauarphjaflw.website^
@@ -63396,6 +63465,7 @@ zpaste.net##.uk-animation-shake
 ||wdppwawnhehxn.space^
 ||wdrinqlklnvcb.space^
 ||wdsrkbnwhjqby.space^
+||wdsvzbwcdkyfx.online^
 ||wdtryisrzshiw.space^
 ||wdtyl.xyz^
 ||wdtypxrniewko.website^
@@ -63495,6 +63565,7 @@ zpaste.net##.uk-animation-shake
 ||weby.aaas.org^
 ||webztkbnubgup.space^
 ||wecchefitchy.cyou^
+||wecdvioxnjuqd.space^
 ||wecouldle.com^$popup
 ||wecvhi.ekftei2weudt.info^
 ||wecyjtnykvebc.online^
@@ -64501,6 +64572,7 @@ zpaste.net##.uk-animation-shake
 ||wqfbpdnqrdycx.space^
 ||wqgpzmpwuchvi.one^
 ||wqheilinlcsnl.online^
+||wqicmioasixaa.online^
 ||wqjregsni.net^
 ||wqkjeoqjzmmyo.online^
 ||wqmnhaxnmdvdu.space^
@@ -65981,6 +66053,7 @@ zpaste.net##.uk-animation-shake
 ||ylcajkhefghaf.online^
 ||yldbt.com^
 ||yldmgrimg.net^
+||yldxtcgvchrck.site^
 ||ylfpsvepwbq.com^
 ||ylgtncvp.com^
 ||ylhwjxnnxbkgz.website^
@@ -67014,6 +67087,7 @@ zpaste.net##.uk-animation-shake
 ||zqhnxekspvssc.website^
 ||zqjklzrqmreq.top^
 ||zqkveqwhrxkda.website^
+||zqmblmvomvqmb.top^
 ||zqmblmvomvvjw.top^
 ||zqmblmvomvzab.top^
 ||zqn8g7jrc4y5wjqirhrw14o5i.rest^
@@ -67097,6 +67171,7 @@ zpaste.net##.uk-animation-shake
 ||zubniivgigntj.website^
 ||zucany.click^
 ||zucks.net^
+||zucqmafpo.com^
 ||zudvl.com^
 ||zudzdfcrjcljy.site^
 ||zuekohojehjsx.space^

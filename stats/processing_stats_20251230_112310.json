@@ -1,15 +1,15 @@
 {
   "processing_info": {
-    "start_time": "2025-12-30 04:45:52",
-    "end_time": "2025-12-30 04:45:53",
-    "total_duration_seconds": 0.57,
+    "start_time": "2025-12-30 11:23:10",
+    "end_time": "2025-12-30 11:23:10",
+    "total_duration_seconds": 0.68,
     "update_status": "updated",
     "shanghai_timezone": true
   },
   "rules_summary": {
-    "adblock_rules": 67239,
+    "adblock_rules": 67314,
     "hosts_entries": 86944,
-    "total_processed": 154183
+    "total_processed": 154258
   },
   "sources_summary": {
     "total_sources": 4,
@@ -18,46 +18,46 @@
     "success_rate": 100.0
   },
   "source_details": {
-    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
-      "status": "success",
-      "lines": 93595,
-      "time_seconds": 0.1,
-      "size_bytes": 2574324
-    },
     "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
       "status": "success",
       "lines": 1020,
-      "time_seconds": 0.1,
+      "time_seconds": 0.06,
       "size_bytes": 27697
     },
     "https://easylist.to/easylist/easylist.txt": {
       "status": "success",
-      "lines": 81936,
-      "time_seconds": 0.13,
-      "size_bytes": 2096017
+      "lines": 82011,
+      "time_seconds": 0.14,
+      "size_bytes": 2097704
+    },
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
+      "status": "success",
+      "lines": 93595,
+      "time_seconds": 0.15,
+      "size_bytes": 2574324
     },
     "https://someonewhocares.org/hosts/zero/hosts": {
       "status": "success",
       "lines": 12140,
-      "time_seconds": 0.27,
+      "time_seconds": 0.33,
       "size_bytes": 330689
     }
   },
   "rules_by_source": {
-    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
-      "adblock": 0,
-      "hosts": 86835,
-      "total": 86835
-    },
     "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/master/BaseFilter/sections/adservers.txt": {
       "adblock": 841,
       "hosts": 0,
       "total": 841
     },
     "https://easylist.to/easylist/easylist.txt": {
-      "adblock": 66398,
+      "adblock": 66473,
       "hosts": 0,
-      "total": 66398
+      "total": 66473
+    },
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts": {
+      "adblock": 0,
+      "hosts": 86835,
+      "total": 86835
     },
     "https://someonewhocares.org/hosts/zero/hosts": {
       "adblock": 0,
