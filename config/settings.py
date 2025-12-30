@@ -33,10 +33,10 @@ class Config:
     
     # ===【第四阶段：优化配置】===
     # 1. 数量限制（大幅提高）
-    MAX_ADBLOCK_RULES = 1000000     # Adblock规则上限：100万条
-    MAX_HOSTS_RULES = 500000        # Hosts规则上限：50万条
-    MAX_DOMAIN_RULES = 500000       # 域名规则上限：50万条
-    MAX_TOTAL_RULES = 2000000       # 总规则数上限：200万条
+    MAX_ADBLOCK_RULES = 10000000     # Adblock规则上限：100万条
+    MAX_HOSTS_RULES = 5000000        # Hosts规则上限：50万条
+    MAX_DOMAIN_RULES = 5000000       # 域名规则上限：50万条
+    MAX_TOTAL_RULES = 20000000       # 总规则数上限：200万条
     
     # 2. 规则质量过滤
     MIN_RULE_PRIORITY = 0          # 最低优先级（0-100）
