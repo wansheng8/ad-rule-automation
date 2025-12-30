@@ -1,5 +1,5 @@
 """
-配置文件 - 广告规则自动化处理系统 (TXT配置版)
+配置文件 - 广告规则自动化处理系统 (优化增强版)
 """
 
 import os
@@ -12,15 +12,29 @@ class Config:
     REPO_OWNER = "wansheng8"
     REPO_NAME = "ad-rule-automation"
     
-    # 处理配置
-    MAX_WORKERS = 30
-    REQUEST_TIMEOUT = 60
+    # ===【核心优化】处理配置 ===
+    MAX_WORKERS = 8           # 从30大幅降低，减少并发压力和被拒风险
+    REQUEST_TIMEOUT = 25      # 从60降低，快速失败而非长时间等待
     MAX_RULES_PER_TYPE = 200000
+    
+    # ===【新增】缓存配置 ===
+    CACHE_ENABLED = True
+    CACHE_DIR = os.path.join(os.path.dirname(__file__), '..', '.cache')
+    CACHE_EXPIRE_HOURS = 24   # 缓存24小时
+    
+    # ===【新增】规则自查配置 ===
+    RULE_CHECK_ENABLED = True              # 启用规则自查
+    RULE_CHECK_SAMPLE_PERCENT = 5          # 抽样检查比例（%）
+    RULE_CHECK_TIMEOUT = 3                 # Ping超时时间（秒）
+    RULE_CHECK_CONCURRENCY = 5             # 并发检查数
+    RULE_CHECK_MIN_SAMPLE = 50             # 最小抽样数量
+    RULE_CHECK_MAX_SAMPLE = 200            # 最大抽样数量
     
     # 输出配置
     OUTPUT_DIR = "dist"
     STATS_DIR = "stats"
     BACKUP_DIR = "backups"
+    CHECK_DIR = "checks"                   # 自查报告目录
     
     # 规则优先级关键词
     HIGH_PRIORITY_KEYWORDS = [
@@ -38,7 +52,8 @@ class Config:
         'adblock': 'Adblock.txt',
         'hosts': 'hosts.txt',
         'domains': 'Domains.txt',
-        'stats': 'stats_{date}.json'
+        'stats': 'stats_{date}.json',
+        'check': 'rule_check_{date}.json'
     }
     
     # 支持的规则类型
