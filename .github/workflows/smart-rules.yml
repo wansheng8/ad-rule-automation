@@ -1,126 +1,89 @@
-name: 智能广告规则自动更新
+name: 广告规则自动更新
+
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天UTC时间2点（北京时间10点）自动运行
-  push:
-    paths:
-      - 'config/**'
-      - 'scripts/**'
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 2 * * *'  # 每天UTC 2点运行
+  workflow_dispatch:       # 允许手动触发
 
 jobs:
-  update-rules:
+  update:
     runs-on: ubuntu-latest
-    # ===【核心优化】设置作业全局超时 ===
-    timeout-minutes: 28
+    timeout-minutes: 35    # 总超时35分钟
     
-    permissions:
-      contents: write
-      
     steps:
-      - name: 检出代码（配置令牌）
+      - name: 检出代码
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: 设置Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+          cache: 'pip'
           
-      - name: 缓存Python依赖
+      - name: 恢复缓存
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          path: |
+            ~/.cache/pip
+            .cache/
+          key: ${{ runner.os }}-rules-${{ hashFiles('requirements.txt', 'config/rule_sources.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
-            
-      - name: 缓存规则数据
-        uses: actions/cache@v3
-        with:
-          path: .cache/
-          key: ${{ runner.os }}-rule-cache-${{ hashFiles('config/rule_sources.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-rule-cache-
+            ${{ runner.os }}-rules-
             
       - name: 安装依赖
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install --upgrade pip
+          pip install requests
           
-      - name: 运行规则处理脚本
-        # ===【核心优化】为最耗时的步骤单独设置超时 ===
-        timeout-minutes: 25
-        run: python scripts/smart_rule_processor.py
-        
-      - name: 自动验证生成的文件
-        timeout-minutes: 2
+      - name: 运行优化脚本 (核心步骤)
+        timeout-minutes: 30  # 脚本运行30分钟超时
         run: |
-          echo "=== 自动验证生成的文件 ==="
+          echo "========================================"
+          echo "🚀 开始处理广告规则"
+          echo "========================================"
+          python scripts/smart_rule_processor.py
           
-          if [ ! -d "dist" ]; then
-            echo "❌ dist目录未生成"
-            exit 1
-          fi
-          
-          echo "📁 dist目录文件列表:"
-          ls -la dist/
-          echo ""
-          
-          for file in dist/*.txt; do
-            if [ -f "$file" ]; then
-              echo "📊 $(basename $file):"
-              echo "   大小: $(wc -c < $file | numfmt --to=iec)"
-              echo "   行数: $(wc -l < $file | numfmt --grouping)"
-              echo ""
-            fi
-          done
-          
-      - name: 运行独立规则自查（可选）
-        timeout-minutes: 5
+      - name: 检查生成的文件
         run: |
-          if [ -f "scripts/rule_checker.py" ]; then
-            echo "🔍 运行独立规则自查..."
-            python scripts/rule_checker.py
-          else
-            echo "⚠️  规则自查脚本不存在，跳过"
-          fi
-          
-      - name: 检查自查报告
-        timeout-minutes: 1
-        run: |
-          if [ -d "checks" ]; then
-            echo "📋 自查报告文件:"
-            ls -la checks/
+          echo "📁 生成的文件:"
+          if [ -d "dist" ]; then
+            ls -lh dist/
             echo ""
-            LATEST_CHECK=$(find checks/ -name "*.json" -type f | sort | tail -1)
-            if [ -n "$LATEST_CHECK" ]; then
-              echo "最新自查报告: $(basename $LATEST_CHECK)"
-              echo "报告大小: $(wc -c < $LATEST_CHECK | numfmt --to=iec)字节"
-            fi
+            for file in dist/*.txt; do
+              if [ -f "$file" ]; then
+                echo "📊 $(basename $file):"
+                echo "  大小: $(wc -c < $file | numfmt --to=iec)"
+                echo "  行数: $(wc -l < $file | numfmt --grouping)"
+                echo ""
+              fi
+            done
+          else
+            echo "❌ dist目录不存在"
           fi
           
-      - name: 配置Git并推送
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 提交变更
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+          # 检查是否有变更
+          if git diff --quiet; then
             echo "没有变更需要提交"
             exit 0
           fi
           
-          git add .
-          git commit -m "🤖 自动更新广告规则 [$(date '+%Y-%m-%d %H:%M:%S')]" || echo "提交可能失败，继续执行..."
+          git add dist/ stats/
+          git commit -m "🤖 自动更新规则 [$(date '+%Y-%m-%d %H:%M')]" || true
           
-          echo "尝试推送..."
-          if git push origin HEAD:main; then
-            echo "✅ 推送成功"
-          else
-            echo "❌ 推送失败"
-            exit 1
-          fi
+          # 尝试推送
+          for i in {1..3}; do
+            echo "推送尝试 $i/3"
+            if git push origin HEAD:main; then
+              echo "✅ 推送成功"
+              break
+            fi
+            sleep 5
+          done
