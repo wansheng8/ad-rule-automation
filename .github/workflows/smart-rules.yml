@@ -68,10 +68,16 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 设置时区为上海（北京时间）
+          TZ: Asia/Shanghai
         run: |
           # 配置Git
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 设置Git提交时间为当前正确时间
+          export GIT_COMMITTER_DATE="$(date)"
+          export GIT_AUTHOR_DATE="$(date)"
           
           # 检查变更
           if git diff --quiet && git diff --staged --quiet; then
@@ -82,8 +88,9 @@ jobs:
           # 添加文件
           git add dist/ stats/
           
-          # 提交
-          git commit -m "🤖 自动更新规则 [$(date '+%Y-%m-%d %H:%M')]"
+          # 提交（使用正确的北京时间）
+          CURRENT_TIME=$(date '+%Y-%m-%d %H:%M')
+          git commit -m "🤖 自动更新规则 [$CURRENT_TIME]"
           
           # 推送
           echo "🚀 推送变更到GitHub..."
