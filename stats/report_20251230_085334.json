@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-12-30 16:53:34",
+  "stats": {
+    "total_sources": 38,
+    "total_rules": 28465778,
+    "final_rules": 299873,
+    "duration": 25.86,
+    "status": "success"
+  },
+  "fetcher_stats": {
+    "total": 0,
+    "success": 35,
+    "cached": 35,
+    "failed": 3,
+    "timeout": 0
+  },
+  "config": {
+    "max_workers": 3,
+    "timeout": 10,
+    "cache_enabled": true
+  }
+}
