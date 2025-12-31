@@ -1,6 +1,6 @@
 # 域名规则 - 多阶段优化版
-# 生成时间: 2025-12-30 20:33:45
-# 域名数量: 187
+# 生成时间: 2025-12-30 20:41:51
+# 域名数量: 178
 # 项目地址: https://github.com/wansheng8/ad-rule-automation
 #
 
@@ -20,7 +20,6 @@ admitad.com
 adtechus.com
 adverigo.com
 alipromo.com
-amgload.net
 api.brookiebot.com
 api.cookielaw-script.it
 api.cookielaw.eu
@@ -44,26 +43,20 @@ chemdraw.com.cn
 clck.yandex.ru
 cmp.cls.pm
 cmp.dreamlab.pl
-cmp.meteored.com
 cmp.osano.com
 cmp.pafo.fairbung.com
-cmp.setupcmp.com
 cmp.springernature.com
 comagic.ru
 confirmit.com
 connect.danone.es
-consensu.infor.pl
 consent-notice.magix.com
-consent.23g.io
 consent.scm-verlagsgruppe.de
 cookie.consent.is
 cookieconsent.blob.core.windows.net
 cookieconsent.syreta.com
 cookielaw.emea.fcagroup.com
 cookiemon.atcom.gr
-cookies.ae-webdesign.com
 cookies.algo.at
-cookies.ptj.de
 coreldrawchina.com
 csi.gstatic.com
 cxense.com
@@ -93,7 +86,6 @@ g.huya.com
 g17media.com
 gate.hockeyapp.net
 gdpr-banner.awsmpsa.com
-gdpr.internetbrands.com
 georiot.com
 googletagmanager.com
 googletagservices.com
@@ -148,7 +140,6 @@ podtrac.com
 popin.cc
 privacidade.api.milvus.com.br
 privacy-policy.u-lab.nl
-privacy.claytonhomes.com
 procookie.by.nf
 pub.funshion.com
 qualtrics.com
@@ -168,11 +159,11 @@ statuscake.com
 stgowan.com
 synacast.com
 t.yesware.com
+taboola.com
 tag.aticdn.net
 u8.hujiang.com
 ubmcmm.baidustatic.com
 udiab1.jianshu.com
-up-cookiemon.wavecdn.net
 ups.ksmobile.net
 v3cdn.net
 vectorstock.com
