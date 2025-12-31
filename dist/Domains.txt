@@ -1,20 +1,22 @@
 # 域名规则 - 多阶段优化版
-# 生成时间: 2025-12-30 21:00:15
-# 域名数量: 15
+# 生成时间: 2025-12-31 11:22:46
+# 域名数量: 17
 # 项目地址: https://github.com/wansheng8/ad-rule-automation
 #
 
 ad-survey.com
-apisgame.iqiyi.com
 banana.le.com
+bjcathay.com
 de.as.pptv.com
 g.huya.com
 gdt.qq.com
+ipinyou.com
 jads.co
 log1.17173.com
 miaozhen.com
 pub.funshion.com
 show.ssports.com
+static.g.iqiyi.com
 stgowan.com
 synacast.com
 t.yesware.com
