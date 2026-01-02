@@ -1,15 +1,10 @@
 # 域名规则 - 多阶段优化版
-# 生成时间: 2026-01-01 11:45:39
-# 域名数量: 9
+# 生成时间: 2026-01-02 11:25:57
+# 域名数量: 4
 # 项目地址: https://github.com/wansheng8/ad-rule-automation
 #
 
 banana.le.com
-de.as.pptv.com
 gdt.qq.com
-jads.co
-pub.funshion.com
 statwup.huya.com
-stgowan.com
-synacast.com
 t.yesware.com
