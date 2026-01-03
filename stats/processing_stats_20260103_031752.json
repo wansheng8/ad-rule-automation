@@ -1,0 +1,87 @@
+{
+  "processing_info": {
+    "start_time": "2026-01-03 11:17:52",
+    "total_duration_seconds": 17.78,
+    "status": "success",
+    "timestamp": "2026-01-03T03:17:52.689119"
+  },
+  "stage_statistics": {
+    "stage1_download": {
+      "time": 2.5496602058410645,
+      "rules": 24
+    },
+    "stage2_parse": {
+      "time": 2.9598333835601807,
+      "rules": 1439177
+    },
+    "stage3_dedup": {
+      "time": 3.378028392791748,
+      "before": 1439177,
+      "after": 503421
+    },
+    "stage4_optimize": {
+      "time": 3.7512664794921875,
+      "before": 503421,
+      "after": 456142
+    },
+    "stage5_secondary": {
+      "time": 5.029167652130127,
+      "before": 456142,
+      "after": 398851
+    },
+    "stage6_output": {
+      "time": 0.10890913009643555,
+      "rules": 398851
+    },
+    "total_time": 17.777047157287598,
+    "final_rules": 398851
+  },
+  "deduplication_stats": {
+    "stage1_hash": {
+      "before": 1439177,
+      "after": 715629
+    },
+    "stage2_domain": {
+      "before": 715629,
+      "after": 614599
+    },
+    "stage3_subdomain": {
+      "before": 614599,
+      "after": 503421
+    },
+    "total_removed": 935756
+  },
+  "optimization_stats": {
+    "by_priority": 0,
+    "by_validation": 0,
+    "by_quality": 1385,
+    "total_removed": 47279
+  },
+  "secondary_optimization_stats": {
+    "expired_removed": 8852,
+    "similar_merged": 48439,
+    "total_removed": 57291
+  },
+  "download_stats": {
+    "total": 0,
+    "success": 25,
+    "cached": 1,
+    "failed": 2,
+    "timeout": 0
+  },
+  "final_counts": {
+    "adblock_rules": 395650,
+    "hosts_rules": 3200,
+    "domain_rules": 1,
+    "total_rules": 398851
+  },
+  "configuration": {
+    "max_workers": 8,
+    "request_timeout": 15,
+    "cache_enabled": true,
+    "max_adblock_rules": 3500000,
+    "max_hosts_rules": 5000000,
+    "max_domain_rules": 5000000,
+    "max_total_rules": 20000000
+  }
+}
